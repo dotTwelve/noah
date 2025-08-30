@@ -1,4 +1,4 @@
-// Quantity Selector with Range Support
+// Quantity Selector with Range Support and Dynamic Pricing
 // (c) 2025 NOAH Natural Products s.r.o.
 (function($) {
     'use strict';
@@ -13,6 +13,166 @@
         if (!containers.length || !input.length) {
             console.log('Quantity selector: Required elements not found');
             return;
+        }
+        
+        // Funkce pro získání základní ceny a měny z upgates objektu
+        function getPriceData() {
+            if (typeof upgates === 'undefined' || !upgates.product || !upgates.product.price) {
+                console.log('Upgates product data not found');
+                return null;
+            }
+            
+            const price = upgates.product.price.withVat;
+            const currency = upgates.currency;
+            
+            // Určit symbol měny
+            let currencySymbol = '';
+            switch(currency) {
+                case 'CZK':
+                    currencySymbol = 'Kč';
+                    break;
+                case 'EUR':
+                    currencySymbol = '€';
+                    break;
+                case 'USD':
+                    currencySymbol = '$';
+                    break;
+                default:
+                    currencySymbol = currency;
+            }
+            
+            return {
+                price: price,
+                currency: currency,
+                symbol: currencySymbol
+            };
+        }
+        
+        // Funkce pro určení rozmezí množství
+        function getQuantityRange(boxes, index) {
+            const currentBox = boxes[index];
+            const nextBox = boxes[index + 1];
+            const currentQty = parseInt($(currentBox).data('quantity'));
+            
+            if (index === 0) {
+                // První box - od 1 do (další-1)
+                if (nextBox) {
+                    const nextQty = parseInt($(nextBox).data('quantity'));
+                    if (nextQty === 3) {
+                        return '1-2';
+                    }
+                    return `1-${nextQty - 1}`;
+                }
+                return '1';
+            } else if (!nextBox) {
+                // Poslední box - od hodnoty nahoru
+                return `${currentQty}+`;
+            } else {
+                // Prostřední box - od hodnoty do (další-1)
+                const nextQty = parseInt($(nextBox).data('quantity'));
+                if (currentQty === nextQty - 1) {
+                    return `${currentQty}`;
+                }
+                return `${currentQty}-${nextQty - 1}`;
+            }
+        }
+        
+        // Funkce pro pluralizaci českých slov
+        function getQuantityWord(range) {
+            // Extrahovat čísla z rozmezí
+            const numbers = range.match(/\d+/g);
+            if (!numbers) return 'kusů';
+            
+            const firstNum = parseInt(numbers[0]);
+            const lastNum = numbers.length > 1 ? parseInt(numbers[numbers.length - 1]) : firstNum;
+            
+            // Pro rozmezí používáme poslední číslo
+            const num = range.includes('+') ? 5 : lastNum;
+            
+            if (num === 1) {
+                return 'kus';
+            } else if (num >= 2 && num <= 4) {
+                return 'kusy';
+            } else {
+                return 'kusů';
+            }
+        }
+        
+        // Funkce pro aktualizaci obsahu boxů
+        function updateBoxContent() {
+            const priceData = getPriceData();
+            
+            if (!priceData) {
+                console.log('Could not get price data');
+                return;
+            }
+            
+            const basePrice = priceData.price;
+            const currencySymbol = priceData.symbol;
+            
+            containers.each(function() {
+                const $container = $(this);
+                const boxes = $container.find('.discount-boxes .box').toArray();
+                
+                boxes.forEach((box, index) => {
+                    const $box = $(box);
+                    const quantity = parseInt($box.data('quantity'));
+                    const savePercent = parseInt($box.data('save')) || 0;
+                    
+                    // Vypočítat ceny
+                    const discountMultiplier = 1 - (savePercent / 100);
+                    const discountedPrice = Math.round(basePrice * discountMultiplier);
+                    const savedAmount = Math.round(basePrice - discountedPrice);
+                    
+                    // Určit rozmezí
+                    const range = getQuantityRange(boxes, index);
+                    const quantityWord = getQuantityWord(range);
+                    const quantityText = `${range} ${quantityWord}`;
+                    
+                    // Vyčistit box
+                    $box.empty();
+                    
+                    // Přidat obsah podle typu boxu
+                    if (savePercent > 0) {
+                        // Box se slevou
+                        $box.addClass('highlight');
+                        
+                        // Přidat savings badge
+                        const $savings = $('<span class="savings"></span>');
+                        $savings.text(`-${savePercent}%`);
+                        $box.append($savings);
+                        
+                        // Přidat množství
+                        const $quantity = $('<span class="quantity"></span>');
+                        $quantity.text(quantityText);
+                        $box.append($quantity);
+                        
+                        // Přidat cenu
+                        const $price = $('<span class="price"></span>');
+                        $price.text(`${discountedPrice} ${currencySymbol}/ks`);
+                        $box.append($price);
+                        
+                        // Přidat úsporu (menší text)
+                        const $saved = $('<span class="saved"></span>');
+                        $saved.text(`ušetříte ${savedAmount} ${currencySymbol}/ks`);
+                        $box.append($saved);
+                        
+                    } else {
+                        // Základní box bez slevy
+                        $box.removeClass('highlight');
+                        
+                        // Přidat množství
+                        const $quantity = $('<span class="quantity"></span>');
+                        $quantity.text(quantityText);
+                        $box.append($quantity);
+                        
+                        // Přidat cenu
+                        const $price = $('<span class="price"></span>');
+                        $price.text(`${basePrice} ${currencySymbol}/ks`);
+                        $box.append($price);
+                    }
+                });
+            });
         }
         
         // Funkce pro výběr správného boxu podle množství
@@ -45,13 +205,17 @@
                 let selectedBox = null;
                 
                 // Speciální logika pro 3 boxy (1, 3, 5)
-                if (boxValues.length === 3) {
+                if (boxValues.length === 3 && 
+                    boxValues[0].value === 1 && 
+                    boxValues[1].value === 3 && 
+                    boxValues[2].value === 5) {
+                    
                     if (quantity >= 1 && quantity <= 2) {
-                        selectedBox = boxValues[0].element; // Box s hodnotou 1
+                        selectedBox = boxValues[0].element;
                     } else if (quantity >= 3 && quantity <= 4) {
-                        selectedBox = boxValues[1].element; // Box s hodnotou 3
+                        selectedBox = boxValues[1].element;
                     } else if (quantity >= 5) {
-                        selectedBox = boxValues[2].element; // Box s hodnotou 5
+                        selectedBox = boxValues[2].element;
                     }
                 } else {
                     // Obecná logika pro jiný počet boxů
@@ -60,12 +224,12 @@
                         const nextBox = boxValues[i + 1];
                         
                         if (i === boxValues.length - 1) {
-                            // Poslední box - platí pro všechny hodnoty >= jeho hodnota
+                            // Poslední box
                             if (quantity >= currentBox.value) {
                                 selectedBox = currentBox.element;
                             }
                         } else {
-                            // Určit rozmezí pro aktuální box
+                            // Určit rozmezí
                             if (quantity >= currentBox.value && quantity < nextBox.value) {
                                 selectedBox = currentBox.element;
                                 break;
@@ -74,19 +238,12 @@
                     }
                 }
                 
-                // Animovaně odstranit třídu selected ze všech boxů
-                boxes.each(function() {
-                    const $box = $(this);
-                    if ($box.hasClass('selected') && $box[0] !== (selectedBox ? selectedBox[0] : null)) {
-                        // Plynulá deaktivace
-                        $box.removeClass('selected');
-                    }
-                });
+                // Odstranit selected ze všech boxů
+                boxes.removeClass('selected');
                 
-                // Přidat třídu selected vybranému boxu s animací
-                if (selectedBox && !selectedBox.hasClass('selected')) {
+                // Přidat selected vybranému boxu
+                if (selectedBox) {
                     if (animate) {
-                        // Malé zpoždění pro plynulejší animaci
                         setTimeout(function() {
                             selectedBox.addClass('selected');
                         }, 50);
@@ -97,16 +254,17 @@
             });
         }
         
-        // Inicializace - označit box podle aktuální hodnoty bez animace
+        // Inicializace - aktualizovat obsah a označit box
+        updateBoxContent();
         const initialQuantity = parseInt(input.val()) || 1;
         selectBoxByQuantity(initialQuantity, false);
         
-        // Odstranit staré handlery pomocí namespace
+        // Odstranit staré handlery
         containers.find('.discount-boxes .box').off('click.quantitySelector');
         input.off('change.quantitySelector input.quantitySelector');
         $('.ui-spinner-button').off('click.quantitySelector');
         
-        // Klik na box - nastaví hodnotu z data-quantity
+        // Klik na box
         containers.on('click.quantitySelector', '.discount-boxes .box', function(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -115,30 +273,28 @@
             const quantity = parseInt($clickedBox.data('quantity'));
             
             if (!isNaN(quantity)) {
-                // Okamžitě označit kliknutý box (pro rychlou odezvu)
+                // Okamžitě označit
                 containers.find('.discount-boxes .box').removeClass('selected');
                 $clickedBox.addClass('selected');
                 
-                // Nastavit hodnotu do inputu
+                // Nastavit hodnotu
                 input.val(quantity);
-                
-                // Trigger change event pro případné další skripty
                 input.trigger('change');
                 
-                // Zajistit správný výběr (pro případ více kontejnerů)
+                // Zajistit správný výběr
                 setTimeout(function() {
                     selectBoxByQuantity(quantity, false);
                 }, 100);
             }
         });
         
-        // Změna inputu - vybere správný box podle rozmezí
+        // Změna inputu
         input.on('change.quantitySelector input.quantitySelector', function() {
             const quantity = parseInt($(this).val()) || 1;
             selectBoxByQuantity(quantity);
         });
         
-        // Při změně množství tlačítky +/- (ui-spinner)
+        // Spinner tlačítka
         $('.ui-spinner-button').on('click.quantitySelector', function(e) {
             e.preventDefault();
             setTimeout(function() {
@@ -147,23 +303,23 @@
             }, 100);
         });
         
-        // Zajistit správné hover efekty - zabránit hover během selected stavu
-        containers.on('mouseenter.quantitySelector', '.discount-boxes .box', function() {
-            const $box = $(this);
-            if (!$box.hasClass('selected')) {
-                $box.addClass('hovering');
-            }
-        });
+        // Sledovat změny v upgates objektu (pro AJAX aktualizace)
+        if (typeof upgates !== 'undefined') {
+            upgates.on('product-price-changed', function() {
+                updateBoxContent();
+            });
+        }
         
-        containers.on('mouseleave.quantitySelector', '.discount-boxes .box', function() {
-            $(this).removeClass('hovering');
-        });
-        
-        // Debug log pro kontrolu
+        // Debug
+        const priceData = getPriceData();
         console.log('Quantity selector initialized:', {
-            containers: containers.length,
+            priceData: priceData,
             boxes: containers.find('.discount-boxes .box').length,
-            input: input.val()
+            priceBreakdown: priceData ? {
+                '1-2 ks': `${priceData.price} ${priceData.symbol}`,
+                '3-4 ks': `${Math.round(priceData.price * 0.85)} ${priceData.symbol} (-15%)`,
+                '5+ ks': `${Math.round(priceData.price * 0.80)} ${priceData.symbol} (-20%)`
+            } : 'Price data not found'
         });
     });
 })(jQuery);
