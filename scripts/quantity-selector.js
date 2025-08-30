@@ -124,8 +124,14 @@
                     
                     // Vypočítat ceny
                     const discountMultiplier = 1 - (savePercent / 100);
-                    const discountedPrice = Math.round(basePrice * discountMultiplier);
-                    const savedAmount = Math.round(basePrice - discountedPrice);
+                    const discountedPrice = basePrice * discountMultiplier;
+                    const savedAmount = basePrice - discountedPrice;
+                    
+                    // Formátovat ceny (2 desetinná místa, ale zobrazit celé číslo pokud je .00)
+                    const formatPrice = (price) => {
+                        const rounded = Math.round(price * 100) / 100;
+                        return rounded % 1 === 0 ? rounded.toString() : rounded.toFixed(2).replace('.', ',');
+                    };
                     
                     // Určit rozmezí
                     const range = getQuantityRange(boxes, index);
@@ -152,12 +158,12 @@
                         
                         // Přidat cenu
                         const $price = $('<span class="price"></span>');
-                        $price.text(`${discountedPrice} ${currencySymbol}/ks`);
+                        $price.text(`${formatPrice(discountedPrice)} ${currencySymbol}/ks`);
                         $box.append($price);
                         
                         // Přidat úsporu (menší text)
                         const $saved = $('<span class="saved"></span>');
-                        $saved.text(`ušetříte ${savedAmount} ${currencySymbol}/ks`);
+                        $saved.text(`ušetříte ${formatPrice(savedAmount)} ${currencySymbol}/ks`);
                         $box.append($saved);
                         
                     } else {
@@ -171,7 +177,7 @@
                         
                         // Přidat cenu
                         const $price = $('<span class="price"></span>');
-                        $price.text(`${basePrice} ${currencySymbol}/ks`);
+                        $price.text(`${formatPrice(basePrice)} ${currencySymbol}/ks`);
                         $box.append($price);
                     }
                     
@@ -330,8 +336,11 @@
                 if (save === 0) {
                     debugInfo.priceBreakdown[range] = `${priceData.price} ${priceData.symbol}`;
                 } else {
-                    const discountedPrice = Math.round(priceData.price * (1 - save/100));
-                    debugInfo.priceBreakdown[range] = `${discountedPrice} ${priceData.symbol} (-${save}%)`;
+                    const discountedPrice = priceData.price * (1 - save/100);
+                    const formatted = discountedPrice % 1 === 0 ? 
+                        Math.round(discountedPrice) : 
+                        discountedPrice.toFixed(2).replace('.', ',');
+                    debugInfo.priceBreakdown[range] = `${formatted} ${priceData.symbol} (-${save}%)`;
                 }
             });
             
