@@ -182,7 +182,7 @@
         }
         
         // Funkce pro výběr správného boxu podle množství
-        function selectBoxByQuantity(quantity, animate = true) {
+        function selectBoxByQuantity(quantity) {
             // Projít všechny kontejnery (desktop i mobil verze)
             containers.each(function() {
                 const $container = $(this);
@@ -262,13 +262,7 @@
                 
                 // Přidat selected vybranému boxu
                 if (selectedBox) {
-                    if (animate) {
-                        setTimeout(function() {
-                            selectedBox.addClass('selected');
-                        }, 50);
-                    } else {
-                        selectedBox.addClass('selected');
-                    }
+                    selectedBox.addClass('selected');
                 }
             });
         }
@@ -276,7 +270,7 @@
         // Inicializace - aktualizovat obsah a označit box
         updateBoxContent();
         const initialQuantity = parseInt(input.val()) || 1;
-        selectBoxByQuantity(initialQuantity, false);
+        selectBoxByQuantity(initialQuantity);
         
         // Odstranit staré handlery
         containers.find('.discount-boxes .box').off('click.quantitySelector');
@@ -294,23 +288,20 @@
             if (!isNaN(quantity)) {
                 // Nastavit hodnotu do inputu (to triggeruje input event)
                 input.val(quantity).trigger('input');
-                // Nepotřebujeme volat selectBoxByQuantity zde, protože input event to udělá
             }
         });
         
-        // Změna inputu
-        input.on('change.quantitySelector input.quantitySelector', function() {
+        // Změna inputu - vybere správný box podle rozmezí
+        // Používáme pouze 'input' event, ne 'change' aby nedocházelo k duplicitě
+        input.on('input.quantitySelector', function() {
             const quantity = parseInt($(this).val()) || 1;
             selectBoxByQuantity(quantity);
         });
         
-        // Spinner tlačítka
+        // Spinner tlačítka - neduplikovat s input eventem
         $('.ui-spinner-button').on('click.quantitySelector', function(e) {
             e.preventDefault();
-            setTimeout(function() {
-                const quantity = parseInt(input.val()) || 1;
-                selectBoxByQuantity(quantity);
-            }, 100);
+            // Spinner už trigger'uje input event, takže nemusíme volat selectBoxByQuantity znovu
         });
         
         // Sledovat změny v upgates objektu (pro AJAX aktualizace)
