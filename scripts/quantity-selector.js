@@ -279,8 +279,8 @@
         selectBoxByQuantity(initialQuantity);
         
         // Odstranit staré handlery
-        containers.find('.discount-boxes .box').off('click.quantitySelector');
-        input.off('change.quantitySelector input.quantitySelector');
+        containers.find('.discount-boxes .box').off('click');
+        input.off('change input');
         $('.ui-spinner-button').off('click.quantitySelector');
         
         // Klik na box
