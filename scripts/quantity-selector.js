@@ -1,41 +1,58 @@
 // Quantity Selector
 // (c) 2025 NOAH Natural Products s.r.o.
 
-$(document).ready(function() {
-    // Funkce pro označení boxu podle počtu kusů
-    function selectBoxByQuantity(quantity) {
-        $('.quantity-discounts .box').each(function() {
-            var boxQuantityText = $(this).find('.quantity').text();
-            var boxQuantity = parseInt(boxQuantityText.match(/\d+/)[0]);
-            
-            if (boxQuantity === quantity) {
-                $(this).addClass('selected');
-            } else {
-                $(this).removeClass('selected');
+(function($) {
+    'use strict';
+    
+    $(document).ready(function() {
+        const boxes = $('.quantity-discounts .box');
+        const input = $('#frmproductForm-quantity');
+        
+        if (!boxes.length || !input.length) {
+            return;
+        }
+        
+        function selectBoxByQuantity(quantity) {
+            boxes.each(function() {
+                const boxQuantityText = $(this).find('.quantity').text();
+                const match = boxQuantityText.match(/\d+/);
+                if (match) {
+                    const boxQuantity = parseInt(match[0]);
+                    
+                    if (boxQuantity === quantity) {
+                        $(this).addClass('selected');
+                    } else {
+                        $(this).removeClass('selected');
+                    }
+                }
+            });
+        }
+        
+        // Inicializace - označit box podle aktuální hodnoty
+        const initialQuantity = parseInt(input.val()) || 1;
+        selectBoxByQuantity(initialQuantity);
+        
+        // Odstranit staré handlery
+        boxes.off('click.noah');
+        input.off('change.noah input.noah');
+        
+        // Klik na box
+        boxes.on('click.noah', function(e) {
+            e.preventDefault();
+            const quantityText = $(this).find('.quantity').text();
+            const match = quantityText.match(/\d+/);
+            if (match) {
+                const quantity = parseInt(match[0]);
+                input.val(quantity);
+                input.trigger('change');
+                selectBoxByQuantity(quantity);
             }
         });
-    }
-    
-    // Při načtení stránky označíme box podle aktuální hodnoty inputu
-    var initialQuantity = parseInt($('#frmproductForm-quantity').val()) || 1;
-    selectBoxByQuantity(initialQuantity);
-    
-    // Při kliknutí na box
-    $('.quantity-discounts .box').on('click', function() {
-        var quantityText = $(this).find('.quantity').text();
-        var quantity = parseInt(quantityText.match(/\d+/)[0]);
         
-        // Nastavíme hodnotu do inputu
-        $('#frmproductForm-quantity').val(quantity);
-        $('#frmproductForm-quantity').trigger('change');
-        
-        // Označíme tento box jako vybraný
-        selectBoxByQuantity(quantity);
+        // Změna inputu
+        input.on('change.noah input.noah', function() {
+            const quantity = parseInt($(this).val()) || 1;
+            selectBoxByQuantity(quantity);
+        });
     });
-    
-    // Při změně hodnoty inputu také aktualizujeme vybraný box
-    $('#frmproductForm-quantity').on('change input', function() {
-        var quantity = parseInt($(this).val()) || 1;
-        selectBoxByQuantity(quantity);
-    });
-});
+})(jQuery);
