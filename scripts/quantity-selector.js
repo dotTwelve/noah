@@ -138,12 +138,26 @@
                 e.preventDefault();
                 const quantity = parseInt($(this).data('quantity'));
                 
+                console.log('Klik na box, quantity:', quantity);
+                
                 if (!isNaN(quantity)) {
                     // Najít input znovu pro jistotu
                     const $input = $('#frmproductForm-quantity');
+                    console.log('Input nalezen:', $input.length > 0);
+                    
                     if ($input.length) {
+                        const oldVal = $input.val();
+                        console.log('Stará hodnota:', oldVal);
+                        
                         $input.val(quantity);
+                        console.log('Nová hodnota nastavena:', $input.val());
+                        
+                        // Zkusit různé způsoby triggerování
                         $input.trigger('change');
+                        $input.change();
+                        
+                        console.log('Change event triggerován');
+                        console.log('Finální hodnota v inputu:', $input.val());
                     }
                     selectBox(quantity);
                 }
