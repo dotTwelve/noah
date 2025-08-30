@@ -21,17 +21,8 @@
         });
     }
     
-    function ensureJQuery() {
-        if (typeof jQuery === 'undefined') {
-            return loadScript('https://code.jquery.com/jquery-3.4.1.min.js');
-        }
-        return Promise.resolve();
-    }
-    
     async function init() {
         try {
-            await ensureJQuery();
-            
             for (const script of config.scripts) {
                 await loadScript(script);
             }
