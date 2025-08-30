@@ -292,18 +292,9 @@
             const quantity = parseInt($clickedBox.data('quantity'));
             
             if (!isNaN(quantity)) {
-                // Okamžitě označit
-                containers.find('.discount-boxes .box').removeClass('selected');
-                $clickedBox.addClass('selected');
-                
-                // Nastavit hodnotu
-                input.val(quantity);
-                input.trigger('change');
-                
-                // Zajistit správný výběr
-                setTimeout(function() {
-                    selectBoxByQuantity(quantity, false);
-                }, 100);
+                // Nastavit hodnotu do inputu (to triggeruje input event)
+                input.val(quantity).trigger('input');
+                // Nepotřebujeme volat selectBoxByQuantity zde, protože input event to udělá
             }
         });
         
