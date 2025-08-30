@@ -114,6 +114,9 @@
                 const $container = $(this);
                 const boxes = $container.find('.discount-boxes .box').toArray();
                 
+                // Přidat loading class na začátku
+                $(boxes).addClass('loading');
+                
                 boxes.forEach((box, index) => {
                     const $box = $(box);
                     const quantity = parseInt($box.data('quantity'));
@@ -171,6 +174,9 @@
                         $price.text(`${basePrice} ${currencySymbol}/ks`);
                         $box.append($price);
                     }
+                    
+                    // Odstranit loading class po naplnění obsahu
+                    $box.removeClass('loading');
                 });
             });
         }
@@ -204,18 +210,31 @@
                 // Najít správný box podle rozmezí
                 let selectedBox = null;
                 
-                // Speciální logika pro 3 boxy (1, 3, 5)
-                if (boxValues.length === 3 && 
-                    boxValues[0].value === 1 && 
-                    boxValues[1].value === 3 && 
-                    boxValues[2].value === 5) {
-                    
-                    if (quantity >= 1 && quantity <= 2) {
-                        selectedBox = boxValues[0].element;
-                    } else if (quantity >= 3 && quantity <= 4) {
-                        selectedBox = boxValues[1].element;
-                    } else if (quantity >= 5) {
-                        selectedBox = boxValues[2].element;
+                // Dynamická logika podle počtu boxů a jejich hodnot
+                if (boxValues.length >= 2) {
+                    for (let i = 0; i < boxValues.length; i++) {
+                        const currentBox = boxValues[i];
+                        const nextBox = boxValues[i + 1];
+                        
+                        if (i === 0) {
+                            // První box - od 1 do hodnoty dalšího boxu mínus 1
+                            const upperLimit = nextBox ? nextBox.value - 1 : 999;
+                            if (quantity >= 1 && quantity <= upperLimit) {
+                                selectedBox = currentBox.element;
+                                break;
+                            }
+                        } else if (!nextBox) {
+                            // Poslední box - od své hodnoty nahoru
+                            if (quantity >= currentBox.value) {
+                                selectedBox = currentBox.element;
+                            }
+                        } else {
+                            // Prostřední box - od své hodnoty do další mínus 1
+                            if (quantity >= currentBox.value && quantity < nextBox.value) {
+                                selectedBox = currentBox.element;
+                                break;
+                            }
+                        }
                     }
                 } else {
                     // Obecná logika pro jiný počet boxů
@@ -312,14 +331,31 @@
         
         // Debug
         const priceData = getPriceData();
-        console.log('Quantity selector initialized:', {
-            priceData: priceData,
-            boxes: containers.find('.discount-boxes .box').length,
-            priceBreakdown: priceData ? {
-                '1-2 ks': `${priceData.price} ${priceData.symbol}`,
-                '3-4 ks': `${Math.round(priceData.price * 0.85)} ${priceData.symbol} (-15%)`,
-                '5+ ks': `${Math.round(priceData.price * 0.80)} ${priceData.symbol} (-20%)`
-            } : 'Price data not found'
-        });
+        if (priceData) {
+            const debugInfo = {
+                priceData: priceData,
+                boxes: containers.find('.discount-boxes .box').length,
+                priceBreakdown: {}
+            };
+            
+            // Získat procenta slev z data atributů pro debug výpis
+            containers.first().find('.discount-boxes .box').each(function() {
+                const $box = $(this);
+                const qty = parseInt($box.data('quantity'));
+                const save = parseInt($box.data('save')) || 0;
+                const range = qty === 1 ? '1-2 ks' : qty === 3 ? '3-4 ks' : '5+ ks';
+                
+                if (save === 0) {
+                    debugInfo.priceBreakdown[range] = `${priceData.price} ${priceData.symbol}`;
+                } else {
+                    const discountedPrice = Math.round(priceData.price * (1 - save/100));
+                    debugInfo.priceBreakdown[range] = `${discountedPrice} ${priceData.symbol} (-${save}%)`;
+                }
+            });
+            
+            console.log('Quantity selector initialized:', debugInfo);
+        } else {
+            console.log('Quantity selector initialized: Price data not found');
+        }
     });
 })(jQuery);
