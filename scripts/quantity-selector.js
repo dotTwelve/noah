@@ -4,29 +4,31 @@
     'use strict';
     
     $(document).ready(function() {
-        const boxes = $('.quantity-discounts .box');
+        // Správné selektory podle HTML struktury
+        const boxes = $('.discount-boxes .box');
         const input = $('#frmproductForm-quantity');
         
         if (!boxes.length || !input.length) {
+            console.log('Quantity selector: Elements not found');
             return;
         }
         
         function selectBoxByQuantity(quantity) {
-            // Získat všechny hodnoty z boxů a seřadit je
+            // Získat všechny hodnoty z boxů pomocí data-quantity atributu
             const boxValues = [];
             boxes.each(function() {
-                const boxQuantityText = $(this).find('.quantity').text();
-                const match = boxQuantityText.match(/\d+/);
-                if (match) {
-                    const boxQuantity = parseInt(match[0]);
+                const $box = $(this);
+                const boxQuantity = parseInt($box.data('quantity'));
+                
+                if (!isNaN(boxQuantity)) {
                     boxValues.push({
-                        element: $(this),
+                        element: $box,
                         value: boxQuantity
                     });
                 }
             });
             
-            // Seřadit podle hodnot
+            // Seřadit podle hodnot vzestupně
             boxValues.sort((a, b) => a.value - b.value);
             
             // Najít správný box podle rozmezí
@@ -36,24 +38,33 @@
                 const currentBox = boxValues[i];
                 const nextBox = boxValues[i + 1];
                 
-                if (i === boxValues.length - 1) {
+                if (i === 0) {
+                    // První box - platí pro hodnoty od 1 do dalšího boxu
+                    if (nextBox) {
+                        if (quantity >= 1 && quantity < nextBox.value) {
+                            selectedBox = currentBox.element;
+                            break;
+                        }
+                    } else {
+                        // Jediný box
+                        selectedBox = currentBox.element;
+                        break;
+                    }
+                } else if (i === boxValues.length - 1) {
                     // Poslední box - platí pro všechny hodnoty >= jeho hodnota
                     if (quantity >= currentBox.value) {
                         selectedBox = currentBox.element;
                     }
                 } else {
-                    // Určit rozmezí pro aktuální box
-                    const rangeStart = currentBox.value;
-                    const rangeEnd = nextBox.value - 1;
-                    
-                    if (quantity >= rangeStart && quantity <= rangeEnd) {
+                    // Prostřední boxy - od své hodnoty do další hodnoty minus 1
+                    if (quantity >= currentBox.value && quantity < nextBox.value) {
                         selectedBox = currentBox.element;
                         break;
                     }
                 }
             }
             
-            // Označit vybraný box
+            // Odstranit třídu selected ze všech boxů a přidat ji vybranému
             boxes.removeClass('selected');
             if (selectedBox) {
                 selectedBox.addClass('selected');
@@ -68,20 +79,19 @@
         boxes.off('click.noah');
         input.off('change.noah input.noah');
         
-        // Klik na box
+        // Klik na box - nastaví hodnotu z data-quantity
         boxes.on('click.noah', function(e) {
             e.preventDefault();
-            const quantityText = $(this).find('.quantity').text();
-            const match = quantityText.match(/\d+/);
-            if (match) {
-                const quantity = parseInt(match[0]);
+            const quantity = parseInt($(this).data('quantity'));
+            
+            if (!isNaN(quantity)) {
                 input.val(quantity);
                 input.trigger('change');
                 selectBoxByQuantity(quantity);
             }
         });
         
-        // Změna inputu
+        // Změna inputu - vybere správný box podle rozmezí
         input.on('change.noah input.noah', function() {
             const quantity = parseInt($(this).val()) || 1;
             selectBoxByQuantity(quantity);
