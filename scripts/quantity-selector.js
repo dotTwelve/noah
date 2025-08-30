@@ -298,16 +298,19 @@
         });
         
         // Změna inputu - vybere správný box podle rozmezí
-        // Používáme pouze 'input' event, ne 'change' aby nedocházelo k duplicitě
-        input.on('input.quantitySelector', function() {
+        input.on('input.quantitySelector change.quantitySelector', function() {
             const quantity = parseInt($(this).val()) || 1;
             selectBoxByQuantity(quantity);
         });
         
-        // Spinner tlačítka - neduplikovat s input eventem
+        // Spinner tlačítka
         $('.ui-spinner-button').on('click.quantitySelector', function(e) {
             e.preventDefault();
-            // Spinner už trigger'uje input event, takže nemusíme volat selectBoxByQuantity znovu
+            // Počkat na aktualizaci hodnoty a pak vybrat box
+            setTimeout(function() {
+                const quantity = parseInt(input.val()) || 1;
+                selectBoxByQuantity(quantity);
+            }, 50);
         });
         
         // Sledovat změny v upgates objektu (pro AJAX aktualizace)
