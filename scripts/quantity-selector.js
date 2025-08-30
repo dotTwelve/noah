@@ -124,14 +124,8 @@
                     
                     // Vypočítat ceny
                     const discountMultiplier = 1 - (savePercent / 100);
-                    const discountedPrice = basePrice * discountMultiplier;
-                    const savedAmount = basePrice - discountedPrice;
-                    
-                    // Formátovat ceny (2 desetinná místa, ale zobrazit celé číslo pokud je .00)
-                    const formatPrice = (price) => {
-                        const rounded = Math.round(price * 100) / 100;
-                        return rounded % 1 === 0 ? rounded.toString() : rounded.toFixed(2).replace('.', ',');
-                    };
+                    const discountedPrice = Math.round(basePrice * discountMultiplier);
+                    const savedAmount = Math.round(basePrice - discountedPrice);
                     
                     // Určit rozmezí
                     const range = getQuantityRange(boxes, index);
@@ -158,12 +152,12 @@
                         
                         // Přidat cenu
                         const $price = $('<span class="price"></span>');
-                        $price.text(`${formatPrice(discountedPrice)} ${currencySymbol}/ks`);
+                        $price.text(`${discountedPrice} ${currencySymbol}/ks`);
                         $box.append($price);
                         
                         // Přidat úsporu (menší text)
                         const $saved = $('<span class="saved"></span>');
-                        $saved.text(`ušetříte ${formatPrice(savedAmount)} ${currencySymbol}/ks`);
+                        $saved.text(`ušetříte ${savedAmount} ${currencySymbol}/ks`);
                         $box.append($saved);
                         
                     } else {
@@ -177,7 +171,7 @@
                         
                         // Přidat cenu
                         const $price = $('<span class="price"></span>');
-                        $price.text(`${formatPrice(basePrice)} ${currencySymbol}/ks`);
+                        $price.text(`${basePrice} ${currencySymbol}/ks`);
                         $box.append($price);
                     }
                     
@@ -188,7 +182,7 @@
         }
         
         // Funkce pro výběr správného boxu podle množství
-        function selectBoxByQuantity(quantity) {
+        function selectBoxByQuantity(quantity, animate = true) {
             // Projít všechny kontejnery (desktop i mobil verze)
             containers.each(function() {
                 const $container = $(this);
@@ -268,7 +262,13 @@
                 
                 // Přidat selected vybranému boxu
                 if (selectedBox) {
-                    selectedBox.addClass('selected');
+                    if (animate) {
+                        setTimeout(function() {
+                            selectedBox.addClass('selected');
+                        }, 50);
+                    } else {
+                        selectedBox.addClass('selected');
+                    }
                 }
             });
         }
@@ -276,7 +276,7 @@
         // Inicializace - aktualizovat obsah a označit box
         updateBoxContent();
         const initialQuantity = parseInt(input.val()) || 1;
-        selectBoxByQuantity(initialQuantity);
+        selectBoxByQuantity(initialQuantity, false);
         
         // Odstranit staré handlery
         containers.find('.discount-boxes .box').off('click.quantitySelector');
@@ -292,13 +292,23 @@
             const quantity = parseInt($clickedBox.data('quantity'));
             
             if (!isNaN(quantity)) {
-                // Nastavit hodnotu do inputu (to triggeruje input event)
-                input.val(quantity).trigger('input');
+                // Okamžitě označit
+                containers.find('.discount-boxes .box').removeClass('selected');
+                $clickedBox.addClass('selected');
+                
+                // Nastavit hodnotu
+                input.val(quantity);
+                input.trigger('change');
+                
+                // Zajistit správný výběr
+                setTimeout(function() {
+                    selectBoxByQuantity(quantity, false);
+                }, 100);
             }
         });
         
-        // Změna inputu - vybere správný box podle rozmezí
-        input.on('input.quantitySelector change.quantitySelector', function() {
+        // Změna inputu
+        input.on('change.quantitySelector input.quantitySelector', function() {
             const quantity = parseInt($(this).val()) || 1;
             selectBoxByQuantity(quantity);
         });
@@ -306,11 +316,10 @@
         // Spinner tlačítka
         $('.ui-spinner-button').on('click.quantitySelector', function(e) {
             e.preventDefault();
-            // Počkat na aktualizaci hodnoty a pak vybrat box
             setTimeout(function() {
                 const quantity = parseInt(input.val()) || 1;
                 selectBoxByQuantity(quantity);
-            }, 50);
+            }, 100);
         });
         
         // Sledovat změny v upgates objektu (pro AJAX aktualizace)
@@ -339,11 +348,8 @@
                 if (save === 0) {
                     debugInfo.priceBreakdown[range] = `${priceData.price} ${priceData.symbol}`;
                 } else {
-                    const discountedPrice = priceData.price * (1 - save/100);
-                    const formatted = discountedPrice % 1 === 0 ? 
-                        Math.round(discountedPrice) : 
-                        discountedPrice.toFixed(2).replace('.', ',');
-                    debugInfo.priceBreakdown[range] = `${formatted} ${priceData.symbol} (-${save}%)`;
+                    const discountedPrice = Math.round(priceData.price * (1 - save/100));
+                    debugInfo.priceBreakdown[range] = `${discountedPrice} ${priceData.symbol} (-${save}%)`;
                 }
             });
             
