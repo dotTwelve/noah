@@ -80,7 +80,7 @@
                         $box.append(`<span class="savings">-${savePercent}%</span>`);
                         $box.append(`<span class="quantity">${range} ${word}</span>`);
                         $box.append(`<span class="price">${formatPrice(discountedPrice)} ${priceData.symbol}/ks</span>`);
-                        $box.append(`<span class="saved">ušetříte ${formatPrice(saved)} ${priceData.symbol}/ks</span>`);
+                        $box.append(`<span class="saved">úspora ${formatPrice(saved)} ${priceData.symbol}/ks</span>`);
                     } else {
                         // Základní box
                         $box.append(`<span class="quantity">${range} ${word}</span>`);
