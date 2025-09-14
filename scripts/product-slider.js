@@ -314,6 +314,12 @@
                             padding-right: 0 !important;
                         }
                         
+                        /* Negativní marginy pro swiper-wrapper na mobilech */
+                        .slider-active .swiper-wrapper {
+                            margin-left: -16px;
+                            margin-right: -16px;
+                        }
+                        
                         .swiper-button-prev,
                         .swiper-button-next {
                             width: 30px;
