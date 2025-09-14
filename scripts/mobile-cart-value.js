@@ -25,8 +25,8 @@
                 return;
             }
             
-            // Extrahovat cenu
-            const match = desktopBtn.textContent.match(/(\d[\d\s]*)\s*Kč/);
+            // Extrahovat cenu - včetně desetinných míst
+            const match = desktopBtn.textContent.match(/([\d\s]+[,.]?\d*)\s*Kč/);
             if (!match) {
                 console.log('[MobileCartUpdater] Price not found in text:', desktopBtn.textContent);
                 return;
