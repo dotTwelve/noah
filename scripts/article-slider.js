@@ -3,7 +3,7 @@
  * Převádí seznam článků na interaktivní slider pomocí Swiper.js
  * Založeno na ProductSlider v2.2.0
  * 
- * @version 2.1.0
+ * @version 2.2.0 FINAL
  * @requires jQuery 3.4.1+
  * @requires Swiper 11+
  */
@@ -19,7 +19,7 @@
             wrapperSelector: '.artcl-wrap',
             itemSelector: 'article',
             hrSelector: 'hr',
-            nextButtonSelector: '.SNInextButton', // Tlačítko "Další"
+            nextButtonSelector: '.SNInextButton',
             swiperCDN: 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js',
             swiperCSS: 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css'
         },
@@ -109,7 +109,7 @@
                 return;
             }
             
-            // Odstraň HR elementy (nebudou potřeba ve slideru)
+            // Odstraň HR elementy
             $hrs.remove();
             
             // Odstraň tlačítko "Další" pokud existuje
@@ -118,7 +118,7 @@
                 $nextButton.remove();
             }
             
-            // Zobraz všechny skryté články (měly třídu .hidden)
+            // Zobraz všechny skryté články
             $articles.removeClass('hidden').show();
             
             // Přidej třídy bez změny struktury
@@ -174,11 +174,9 @@
                         type: 'bullets',
                         dynamicBullets: false,
                         renderBullet: function (index, className) {
-                            // Vypočítej číslo skupiny
                             const groupNumber = Math.floor(index / this.params.slidesPerGroup) + 1;
                             const isFirstInGroup = index % this.params.slidesPerGroup === 0;
                             
-                            // Renderuj pouze první slide z každé skupiny
                             if (isFirstInGroup) {
                                 return '<span class="' + className + '" data-slide-index="' + index + '"></span>';
                             }
@@ -208,13 +206,11 @@
                     // Události
                     on: {
                         init: function() {
-                            // Zajisti správné nastavení skupin
                             if (this.params.slidesPerGroup !== this.params.slidesPerView) {
                                 this.params.slidesPerGroup = this.params.slidesPerView;
                                 this.update();
                             }
                             
-                            // Oprav pagination po inicializaci
                             self.updatePagination(this);
                             
                             console.log('ArticleSlider: Slider ' + index + ' inicializován');
@@ -222,21 +218,16 @@
                         },
                         
                         slideChange: function() {
-                            // Aktualizuj aktivní bullet při změně slidu
                             self.updatePaginationActive(this);
-                            
-                            // Lazy load obrázků
                             self.handleLazyLoad(this);
                         },
                         
                         breakpoint: function() {
-                            // Ujisti se, že slidesPerGroup = slidesPerView při změně breakpointu
                             if (this.params.slidesPerGroup !== this.params.slidesPerView) {
                                 this.params.slidesPerGroup = this.params.slidesPerView;
                                 this.update();
                             }
                             
-                            // Aktualizuj pagination po změně breakpointu
                             setTimeout(() => {
                                 self.updatePagination(this);
                             }, 100);
@@ -265,15 +256,12 @@
             const totalGroups = Math.ceil(swiper.slides.length / swiper.params.slidesPerGroup);
             const $pagination = $(swiper.pagination.el);
             
-            // Vyčisti existující bullets
             $pagination.empty();
             
-            // Vytvoř nové bullets pro každou skupinu
             for (let i = 0; i < totalGroups; i++) {
                 const slideIndex = i * swiper.params.slidesPerGroup;
                 const $bullet = $('<span class="swiper-pagination-bullet" data-slide-index="' + slideIndex + '"></span>');
                 
-                // Přidej click handler
                 $bullet.on('click', function() {
                     swiper.slideTo(slideIndex);
                 });
@@ -281,7 +269,6 @@
                 $pagination.append($bullet);
             }
             
-            // Nastav aktivní bullet
             this.updatePaginationActive(swiper);
         },
 
@@ -292,10 +279,7 @@
             const currentGroup = Math.floor(swiper.activeIndex / swiper.params.slidesPerGroup);
             const $pagination = $(swiper.pagination.el);
             
-            // Odstraň aktivní třídu ze všech bullets
             $pagination.find('.swiper-pagination-bullet').removeClass('swiper-pagination-bullet-active');
-            
-            // Přidej aktivní třídu správnému bullet
             $pagination.find('.swiper-pagination-bullet').eq(currentGroup).addClass('swiper-pagination-bullet-active');
         },
 
@@ -306,7 +290,6 @@
             const activeIndex = swiper.activeIndex;
             const slidesPerView = Math.ceil(swiper.params.slidesPerView);
             
-            // Načti obrázky v aktuálních a následujících slidech
             for (let i = activeIndex; i < Math.min(activeIndex + slidesPerView + 1, swiper.slides.length); i++) {
                 if (swiper.slides[i]) {
                     const $slide = $(swiper.slides[i]);
@@ -378,7 +361,7 @@
                         gap: 20px;
                     }
                     
-                    /* Oprava pro články bez obrázku (advisor články) */
+                    /* Oprava pro články bez obrázku */
                     .article-slider-active article:not(:has(figure)) {
                         justify-content: center;
                     }
@@ -414,14 +397,14 @@
                         gap: 12px;
                     }
                     
-                    /* Navigační šipky */
+                    /* Navigační šipky - PŘESNĚ JAKO V ProductSlider */
                     .article-slider-active .swiper-button-prev,
                     .article-slider-active .swiper-button-next {
                         position: absolute;
                         top: 40%;
-                        width: 44px;
-                        height: 44px;
-                        margin-top: -22px;
+                        width: 40px;
+                        height: 40px;
+                        margin-top: -20px;
                         z-index: 10;
                         cursor: pointer;
                         display: flex;
@@ -434,30 +417,24 @@
                     }
                     
                     .article-slider-active .swiper-button-prev {
-                        left: -22px;
+                        left: 10px;
                     }
                     
                     .article-slider-active .swiper-button-next {
-                        right: -22px;
+                        right: 10px;
                     }
                     
                     .article-slider-active .swiper-button-prev:after,
                     .article-slider-active .swiper-button-next:after {
-                        font-size: 18px;
+                        font-size: 16px;
                         color: #333;
                         font-weight: bold;
                     }
                     
                     .article-slider-active .swiper-button-prev:hover,
                     .article-slider-active .swiper-button-next:hover {
-                        background: #27ae60;
-                        box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
                         transform: scale(1.1);
-                    }
-                    
-                    .article-slider-active .swiper-button-prev:hover:after,
-                    .article-slider-active .swiper-button-next:hover:after {
-                        color: white;
                     }
                     
                     .article-slider-active .swiper-button-disabled {
@@ -466,23 +443,23 @@
                         pointer-events: none;
                     }
                     
-                    /* Pagination */
+                    /* Pagination - stejná jako v ProductSlider */
                     .article-slider-active .swiper-pagination {
                         position: relative;
                         text-align: center;
-                        margin-top: 30px;
+                        margin-top: 20px;
                         line-height: 1;
                         z-index: 10;
                     }
                     
                     .article-slider-active .swiper-pagination-bullet {
-                        width: 10px;
-                        height: 10px;
+                        width: 8px;
+                        height: 8px;
                         display: inline-block;
                         border-radius: 50%;
                         background: #ccc;
                         opacity: 1;
-                        margin: 0 5px;
+                        margin: 0 4px;
                         cursor: pointer;
                         transition: all 0.3s;
                         border: none;
@@ -495,8 +472,8 @@
                     
                     .article-slider-active .swiper-pagination-bullet-active {
                         background: #27ae60;
-                        width: 30px;
-                        border-radius: 5px;
+                        width: 24px;
+                        border-radius: 4px;
                     }
                     
                     /* Responzivní úpravy pro tablety */
@@ -515,14 +492,18 @@
                             aspect-ratio: 1;
                         }
                         
-                        /* Článek bez obrázku na tabletu */
                         .article-slider-active article:not(:has(figure)) {
                             align-items: center;
                         }
                     }
                     
-                    /* Responzivní úpravy pro mobily */
-                    @media (max-width: 767px) {
+                    /* Responzivní úpravy pro mobily - STEJNÉ JAKO ProductSlider */
+                    @media (max-width: 768px) {
+                        .article-slider-active .swiper {
+                            margin-left: -16px;
+                            margin-right: -16px;
+                        }
+                    
                         .article-slider-active .swiper-button-prev,
                         .article-slider-active .swiper-button-next {
                             width: 32px;
@@ -593,7 +574,6 @@
 
     // Automatická inicializace
     $(document).ready(function() {
-        // Počkej krátce na dokončení všech animací
         setTimeout(function() {
             ArticleSlider.init();
         }, 100);
