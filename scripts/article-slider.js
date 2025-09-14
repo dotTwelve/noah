@@ -20,7 +20,7 @@
             hrSelector: 'hr',
             nextButtonSelector: '.SNInextButton',
             descriptionMaxLength: 150, // Maximální počet znaků v popisu
-            allArticlesUrl: '/articles', // URL na všechny články
+            allArticlesUrl: '/clanky-o-zdravi', // URL na všechny články
             swiperCDN: 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js',
             swiperCSS: 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css'
         },
