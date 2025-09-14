@@ -525,31 +525,31 @@
                     @media (max-width: 767px) {
                         .article-slider-active .swiper-button-prev,
                         .article-slider-active .swiper-button-next {
-                            width: 36px;
-                            height: 36px;
+                            width: 32px;
+                            height: 32px;
                         }
                         
                         .article-slider-active .swiper-button-prev:after,
                         .article-slider-active .swiper-button-next:after {
-                            font-size: 14px;
+                            font-size: 12px;
                         }
                         
                         .article-slider-active .swiper-button-prev {
-                            left: 10px;
+                            left: 5px;
                         }
                         
                         .article-slider-active .swiper-button-next {
-                            right: 10px;
+                            right: 5px;
                         }
                         
                         .article-slider-active .swiper-pagination-bullet {
-                            width: 8px;
-                            height: 8px;
+                            width: 6px;
+                            height: 6px;
                             margin: 0 3px;
                         }
                         
                         .article-slider-active .swiper-pagination-bullet-active {
-                            width: 24px;
+                            width: 20px;
                         }
                     }
                 </style>
