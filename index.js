@@ -2,7 +2,7 @@
  * NOAH Scripts Loader
  * Hlavní loader pro všechny skripty e-shopu
  * 
- * @version 1.1.0
+ * @version 1.2.0
  */
 
 (function() {
@@ -32,9 +32,31 @@
                 dependencies: ['jquery']
             }
         ],
-        version: '1.1.0',
+        version: '1.2.0',
         debug: false
     };
+    
+    // Najít aktuální skript (index.js)
+    const getCurrentScript = function() {
+        // Pokud je dostupný document.currentScript
+        if (document.currentScript) {
+            return document.currentScript;
+        }
+        
+        // Fallback - najít skript podle src obsahující 'index.js'
+        const scripts = document.getElementsByTagName('script');
+        for (let script of scripts) {
+            if (script.src && script.src.includes('index.js')) {
+                return script;
+            }
+        }
+        
+        // Pokud nenajdeme, vrátit poslední skript (pravděpodobně tento)
+        return scripts[scripts.length - 1];
+    };
+    
+    // Získat referenci na aktuální skript hned při načtení
+    const currentScript = getCurrentScript();
     
     // Logging funkce
     const log = function(message, type = 'info') {
@@ -81,6 +103,7 @@
             const scriptElement = document.createElement('script');
             scriptElement.src = config.baseUrl + script.file;
             scriptElement.async = true;
+            scriptElement.setAttribute('data-noah-script', script.name);
             
             scriptElement.onload = () => {
                 log(`Skript ${script.name} načten`, 'success');
@@ -92,13 +115,26 @@
                 reject(new Error(`Failed to load ${script.name}`));
             };
             
-            document.head.appendChild(scriptElement);
+            // Vložit skript hned za index.js
+            if (currentScript && currentScript.parentNode) {
+                // Vložit za aktuální skript
+                currentScript.parentNode.insertBefore(scriptElement, currentScript.nextSibling);
+            } else {
+                // Fallback - vložit do head nebo body
+                (document.head || document.body).appendChild(scriptElement);
+                log('Použit fallback pro vložení skriptu', 'warning');
+            }
         });
     };
     
     // Načtení všech skriptů
     const loadAllScripts = async function() {
         log(`Inicializace v${config.version}`, 'info');
+        
+        // Informace o umístění
+        if (currentScript) {
+            log(`Loader nalezen: ${currentScript.src || 'inline script'}`, 'info');
+        }
         
         for (let script of config.scripts) {
             try {
@@ -133,6 +169,9 @@
         debug: function(enabled = true) {
             config.debug = enabled;
             log('Debug mód ' + (enabled ? 'zapnut' : 'vypnut'), 'info');
+        },
+        getCurrentScript: function() {
+            return currentScript;
         }
     };
     
