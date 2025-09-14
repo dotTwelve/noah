@@ -2,7 +2,7 @@
  * NOAH Scripts Loader
  * Hlavní loader pro všechny skripty e-shopu
  * 
- * @version 1.2.0
+ * @version 1.3.0
  */
 
 (function() {
@@ -37,9 +37,16 @@
                 enabled: true,
                 description: 'Převod gridu článků na slider',
                 dependencies: ['jquery']
+            },
+            {
+                name: 'mobile-cart-value',
+                file: 'scripts/mobile-cart-value.js',
+                enabled: true,
+                description: 'Zobrazení hodnoty košíku na mobilu',
+                dependencies: ['upgates']
             }
         ],
-        version: '1.2.0',
+        version: '1.3.0',
         debug: false
     };
     
@@ -87,6 +94,10 @@
         for (let dep of script.dependencies) {
             if (dep === 'jquery' && typeof jQuery === 'undefined') {
                 log(`Skript ${script.name} vyžaduje jQuery`, 'warning');
+                return false;
+            }
+            if (dep === 'upgates' && typeof upgates === 'undefined') {
+                log(`Skript ${script.name} vyžaduje upgates (košíkový systém)`, 'warning');
                 return false;
             }
             // Přidejte další kontroly závislostí podle potřeby
@@ -179,6 +190,12 @@
         },
         getCurrentScript: function() {
             return currentScript;
+        },
+        // Přístup k jednotlivým modulům
+        modules: {
+            mobileCartValue: function() {
+                return window.MobileCartValue || null;
+            }
         }
     };
     
