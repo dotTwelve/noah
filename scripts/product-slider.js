@@ -133,7 +133,7 @@
             // Inicializuj Swiper
             const swiperInstance = new Swiper('#' + sliderId, {
                 slidesPerView: 1,
-                spaceBetween: 8, // 4px margin vlevo + 4px margin vpravo = 8px mezera
+                spaceBetween: 0, // Žádné extra mezery - používají se původní marginy
                 watchOverflow: true,
                 centerInsufficientSlides: true,
                 loop: this.config.loop,
