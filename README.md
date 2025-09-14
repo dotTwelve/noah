@@ -21,6 +21,7 @@ noah/
 ├── README.md          # Tento soubor
 └── scripts/
     └── quantity-selector.js  # Výběr množství produktu
+    └── remove-hashbang-links.js  # Odstranění prázdných odkazů
 ```
 
 ## 📦 Skripty
@@ -40,6 +41,9 @@ Interaktivní výběr množství produktu s vizuální zpětnou vazbou.
 </div>
 <input type="number" id="frmproductForm-quantity" value="1">
 ```
+
+### remove-hashbang-links.js
+Samostatný skript pro odstranění odkazů s href="#!"
 
 ## ⚙️ Požadavky
 
