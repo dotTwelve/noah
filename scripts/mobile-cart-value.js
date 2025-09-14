@@ -62,22 +62,14 @@
          * Získání hodnoty košíku
          */
         getCartValue: function() {
-            // Prioritně z upgates dataLayer
-            if (typeof upgates !== 'undefined' && upgates.cart && upgates.cart.products) {
-                let total = 0;
-                upgates.cart.products.forEach(product => {
-                    if (product.price && product.price.withVat && product.quantity) {
-                        total += product.price.withVat * product.quantity;
-                    }
-                });
-                return total;
-            }
-            
-            // Záložně z DOM
+            // Získat hodnotu z DOM elementu .uc-amount (vždy aktuální)
             const amountEl = document.querySelector('.uc-amount');
             if (amountEl) {
-                const text = amountEl.textContent.replace(/[^\d,.-]/g, '').replace(',', '.');
-                return parseFloat(text) || 0;
+                const text = amountEl.textContent || amountEl.innerText;
+                // Odstranit všechny nečíselné znaky kromě čárky a tečky
+                const cleanedText = text.replace(/[^\d,.-]/g, '').replace(',', '.');
+                const value = parseFloat(cleanedText);
+                return isNaN(value) ? 0 : value;
             }
             
             return 0;
