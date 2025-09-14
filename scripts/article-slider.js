@@ -3,7 +3,7 @@
  * Převádí seznam článků na interaktivní slider pomocí Swiper.js
  * Založeno na ProductSlider v2.2.0
  * 
- * @version 6.0.0 - S opravou centrování tlačítek
+ * @version 6.1.0 - Automatické skrývání navigačních šipek když není potřeba scrollovat
  * @requires jQuery 3.4.1+
  * @requires Swiper 11+
  */
@@ -100,6 +100,30 @@
 
                 self.createSlider($container, $wrapper, index);
             });
+        },
+
+        /**
+         * Kontrola, zda jsou potřeba navigační šipky
+         */
+        checkNavigationNeeded: function(swiper) {
+            const totalSlides = swiper.slides.length;
+            const slidesPerView = Math.floor(swiper.params.slidesPerView);
+            
+            // Skryj/zobraz navigaci podle potřeby
+            const needsNavigation = totalSlides > slidesPerView;
+            
+            const $prevButton = $(swiper.navigation.prevEl);
+            const $nextButton = $(swiper.navigation.nextEl);
+            
+            if (needsNavigation) {
+                $prevButton.show();
+                $nextButton.show();
+            } else {
+                $prevButton.hide();
+                $nextButton.hide();
+            }
+            
+            return needsNavigation;
         },
 
         /**
@@ -268,6 +292,7 @@
                                 this.update();
                             }
                             self.updatePagination(this);
+                            self.checkNavigationNeeded(this); // Kontrola navigace při inicializaci
                             console.log('ArticleSlider: Slider ' + index + ' inicializován s ' + this.slides.length + ' články');
                         },
                         
@@ -283,7 +308,13 @@
                             }
                             setTimeout(() => {
                                 self.updatePagination(this);
+                                self.checkNavigationNeeded(this); // Kontrola navigace při změně breakpointu
                             }, 100);
+                        },
+                        
+                        resize: function() {
+                            // Kontrola navigace při změně velikosti okna
+                            self.checkNavigationNeeded(this);
                         }
                     }
                 };
@@ -306,6 +337,14 @@
         updatePagination: function(swiper) {
             const totalGroups = Math.ceil(swiper.slides.length / swiper.params.slidesPerGroup);
             const $pagination = $(swiper.pagination.el);
+            
+            // Skryj pagination pokud je jen jedna skupina
+            if (totalGroups <= 1) {
+                $pagination.hide();
+                return;
+            } else {
+                $pagination.show();
+            }
             
             $pagination.empty();
             
@@ -631,15 +670,19 @@
          * Debug funkce
          */
         debug: function() {
-            console.log('ArticleSlider v6 Debug:');
+            console.log('ArticleSlider v6.1 Debug:');
             console.log('Instances:', this.instances);
             this.instances.forEach((instance, index) => {
+                const swiper = instance.swiper;
+                const needsNavigation = swiper.slides.length > Math.floor(swiper.params.slidesPerView);
                 console.log(`Slider ${index}:`, {
                     id: instance.id,
                     totalItems: instance.totalItems,
-                    activeIndex: instance.swiper.activeIndex,
-                    slidesPerGroup: instance.swiper.params.slidesPerGroup,
-                    slidesPerView: instance.swiper.params.slidesPerView
+                    activeIndex: swiper.activeIndex,
+                    slidesPerGroup: swiper.params.slidesPerGroup,
+                    slidesPerView: swiper.params.slidesPerView,
+                    needsNavigation: needsNavigation,
+                    navigationVisible: $(swiper.navigation.prevEl).is(':visible')
                 });
             });
         }
