@@ -245,8 +245,6 @@
                     .slider-active .swiper {
                         overflow: hidden;
                         position: relative;
-                        margin-left: -16px;
-                        margin-right: -16px;
                     }
                     
                     /* Wrapper */
@@ -356,6 +354,11 @@
                     
                     /* Responzivní úpravy */
                     @media (max-width: 768px) {
+                        .slider-active .swiper {
+                            margin-left: -16px;
+                            margin-right: -16px;
+                        }
+                    
                         .swiper-button-prev,
                         .swiper-button-next {
                             width: 32px;
