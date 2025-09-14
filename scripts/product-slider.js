@@ -20,7 +20,7 @@
             swiperCSS: 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css',
             enabledBreakpoint: null, // null = vždy aktivní, číslo = aktivní pod touto šířkou
             autoplay: false,
-            loop: true,
+            loop: false, // Vypnuto - způsobuje problémy s duplicitními slidy
             slidesPerView: {
                 320: 1,  // 320-575px: 1 produkt
                 576: 2,  // 576-767px: 2 produkty
