@@ -3,7 +3,7 @@
  * Převádí seznam článků na interaktivní slider pomocí Swiper.js
  * Založeno na ProductSlider v2.2.0
  * 
- * @version 2.0.0
+ * @version 2.1.0
  * @requires jQuery 3.4.1+
  * @requires Swiper 11+
  */
@@ -14,10 +14,12 @@
     const ArticleSlider = {
         // Konfigurace
         config: {
-            containerSelector: '.bic-artcl',
+            // Podporuje obě struktury - hlavní stránku i tab v product detail
+            containerSelector: '.bic-artcl, #articles.tab-pane',
             wrapperSelector: '.artcl-wrap',
             itemSelector: 'article',
             hrSelector: 'hr',
+            nextButtonSelector: '.SNInextButton', // Tlačítko "Další"
             swiperCDN: 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js',
             swiperCSS: 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css'
         },
@@ -110,6 +112,15 @@
             // Odstraň HR elementy (nebudou potřeba ve slideru)
             $hrs.remove();
             
+            // Odstraň tlačítko "Další" pokud existuje
+            const $nextButton = $container.find(this.config.nextButtonSelector);
+            if ($nextButton.length) {
+                $nextButton.remove();
+            }
+            
+            // Zobraz všechny skryté články (měly třídu .hidden)
+            $articles.removeClass('hidden').show();
+            
             // Přidej třídy bez změny struktury
             $container.addClass('article-slider-active');
             $wrapper.addClass('swiper swiper-initialized');
@@ -118,7 +129,7 @@
             $articles.each(function() {
                 $(this)
                     .addClass('swiper-slide')
-                    .removeClass('anim-i anim-fade-up anim-y')
+                    .removeClass('anim-i anim-fade-up anim-y SNIitem')
                     .removeClass(function(index, className) {
                         return (className.match(/anim-delay-\d+/g) || []).join(' ');
                     });
@@ -367,6 +378,11 @@
                         gap: 20px;
                     }
                     
+                    /* Oprava pro články bez obrázku (advisor články) */
+                    .article-slider-active article:not(:has(figure)) {
+                        justify-content: center;
+                    }
+                    
                     /* Zajistit viditelnost všech vnořených elementů */
                     .article-slider-active .swiper-slide * {
                         visibility: visible !important;
@@ -497,6 +513,11 @@
                         
                         .article-slider-active article figure img {
                             aspect-ratio: 1;
+                        }
+                        
+                        /* Článek bez obrázku na tabletu */
+                        .article-slider-active article:not(:has(figure)) {
+                            align-items: center;
                         }
                     }
                     
