@@ -1,0 +1,149 @@
+/**
+ * Product Slider Styles for NOAH Natural Products
+ * SCSS styly pro produktový slider
+ * 
+ * @version 1.0.0
+ */
+
+// Import Swiper stylů
+@import url('https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css');
+
+// Produktový slider
+.products-cart-recommend {
+    
+    // Když je slider aktivní
+    &.slider-active {
+        
+        // Hlavní kontejner
+        .card-group {
+            &.swiper {
+                overflow: hidden;
+                position: relative;
+                margin-left: -16px;
+                margin-right: -16px;
+            }
+        }
+        
+        // Wrapper pro slidy
+        .swiper-wrapper {
+            display: flex !important;
+            transition-property: transform;
+        }
+        
+        // Jednotlivé produktové karty
+        .card-item {
+            &.swiper-slide {
+                flex-shrink: 0;
+                width: 100%;
+                height: auto;
+                display: block !important;
+                // Zachovává původní 4px marginy
+            }
+        }
+    }
+}
+
+// Navigační prvky
+.swiper-button-prev,
+.swiper-button-next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    z-index: 10;
+    
+    &:after {
+        font-size: 18px;
+        color: #333;
+        font-weight: bold;
+    }
+    
+    &:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        transform: translateY(-50%) scale(1.1);
+    }
+    
+    &.swiper-button-disabled {
+        opacity: 0.35;
+        cursor: auto;
+        pointer-events: none;
+    }
+}
+
+// Pagination
+.swiper-pagination {
+    position: relative;
+    text-align: center;
+    margin-top: 20px;
+    
+    &-bullet {
+        width: 8px;
+        height: 8px;
+        background: #ccc;
+        opacity: 1;
+        margin: 0 4px;
+        transition: all 0.3s ease;
+        display: inline-block;
+        border-radius: 50%;
+        cursor: pointer;
+        
+        &-active {
+            background: #27ae60;
+            width: 25px;
+            border-radius: 4px;
+        }
+    }
+}
+
+// Responzivní styly
+@media (max-width: 768px) {
+    .swiper-button-prev,
+    .swiper-button-next {
+        width: 36px;
+        height: 36px;
+        
+        &:after {
+            font-size: 14px;
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .products-cart-recommend {
+        &.slider-active {
+            .card-group {
+                &.swiper {
+                    padding-left: 0 !important;
+                    padding-right: 0 !important;
+                }
+            }
+        }
+    }
+    
+    .swiper-button-prev,
+    .swiper-button-next {
+        width: 30px;
+        height: 30px;
+        
+        &:after {
+            font-size: 12px;
+        }
+    }
+    
+    .swiper-pagination {
+        &-bullet {
+            width: 6px;
+            height: 6px;
+            margin: 0 3px;
+            
+            &-active {
+                width: 20px;
+            }
+        }
+    }
+}
