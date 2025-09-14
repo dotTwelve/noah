@@ -1,22 +1,89 @@
 /**
  * Aktualizace mobilního košíku při AJAX změnách
- * Verze 3.2 - Oprava duplicit a animací
+ * Verze 4.0 - S CountUp.js pro spolehlivou animaci
  */
 (function() {
     'use strict';
     
+    // Jednoduchá implementace CountUp efektu
+    class SimpleCountUp {
+        constructor(element, endVal, options = {}) {
+            this.element = element;
+            this.endVal = endVal;
+            this.options = {
+                duration: options.duration || 0.5,
+                separator: options.separator || ' ',
+                decimal: options.decimal || ',',
+                suffix: options.suffix || ''
+            };
+            this.startVal = 0;
+            this.frameVal = 0;
+        }
+        
+        start(callback) {
+            // Získat startovní hodnotu z elementu
+            const currentText = this.element.textContent;
+            const match = currentText.match(/([\d\s]+[,.]?\d*)/);
+            if (match) {
+                this.startVal = parseFloat(match[0].replace(/\s/g, '').replace(',', '.')) || 0;
+            }
+            
+            const startTime = performance.now();
+            const duration = this.options.duration * 1000;
+            
+            const count = (timestamp) => {
+                const progress = Math.min((timestamp - startTime) / duration, 1);
+                
+                // Easing
+                const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+                
+                this.frameVal = this.startVal + (this.endVal - this.startVal) * easeOutQuart;
+                
+                // Format number
+                const formattedVal = this.formatNumber(this.frameVal);
+                this.element.textContent = formattedVal + this.options.suffix;
+                
+                if (progress < 1) {
+                    requestAnimationFrame(count);
+                } else {
+                    // Finální hodnota
+                    this.element.textContent = this.formatNumber(this.endVal) + this.options.suffix;
+                    if (callback) callback();
+                }
+            };
+            
+            requestAnimationFrame(count);
+        }
+        
+        formatNumber(num) {
+            const parts = num.toFixed(2).split('.');
+            let intPart = parts[0];
+            const decPart = parts[1];
+            
+            // Přidat mezery jako tisícové oddělovače
+            intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, this.options.separator);
+            
+            // Pokud je číslo celé, nepoužívat desetinná místa
+            if (Math.floor(num) === num) {
+                return intPart;
+            } else {
+                return intPart + this.options.decimal + decPart;
+            }
+        }
+    }
+    
     const MobileCartUpdater = {
-        priceElements: new WeakMap(), // WeakMap pro lepší správu paměti
+        elements: new Map(),
+        lastPrice: null,
         
         init() {
-            console.log('[MobileCartUpdater] Initializing v3.2...');
-            this.hookIntoAjax();
+            console.log('[MobileCartUpdater] Initializing v4.0...');
             this.addStyles();
-            // První aktualizace
-            this.updateMobileCart();
+            this.hookIntoAjax();
+            this.updateMobileCart(true); // První update bez animace
         },
         
-        updateMobileCart() {
+        updateMobileCart(skipAnimation = false) {
             // Získat hodnotu z desktop košíku
             const desktopBtn = document.querySelector('#snippet--basketTotalAjax .btn, #userCartDropdown .btn, .hdr-crt-btn');
             if (!desktopBtn) {
@@ -24,292 +91,235 @@
                 return;
             }
             
-            // Extrahovat cenu - včetně desetinných míst
+            // Extrahovat cenu
             const match = desktopBtn.textContent.match(/([\d\s]+[,.]?\d*)\s*Kč/);
             if (!match) {
-                console.log('[MobileCartUpdater] Price not found in text:', desktopBtn.textContent);
+                console.log('[MobileCartUpdater] Price not found');
                 return;
             }
             
-            const newPrice = match[0].trim();
-            console.log('[MobileCartUpdater] Detected price:', newPrice);
+            const priceText = match[0].trim();
+            const priceNum = parseFloat(match[1].replace(/\s/g, '').replace(',', '.'));
             
-            // Najít UNIKÁTNÍ mobilní košíky (odstranit duplicity)
-            const mobileLinksNodeList = document.querySelectorAll('#snippet--basketNavbarAjax a[href="/cart"], #userCartDropdown2 > a');
-            const processedLinks = new Set();
+            console.log('[MobileCartUpdater] Price detected:', priceText, '(', priceNum, ')');
             
-            mobileLinksNodeList.forEach(mobileLink => {
-                if (!mobileLink || mobileLink.closest('.dropdown-menu')) {
-                    return; // Skip if in dropdown menu
+            // Kontrola změny
+            if (!skipAnimation && this.lastPrice === priceNum) {
+                console.log('[MobileCartUpdater] Price unchanged');
+                return;
+            }
+            
+            const oldPrice = this.lastPrice;
+            this.lastPrice = priceNum;
+            
+            // Najít mobilní linky - POUZE ty hlavní, ne v dropdown menu
+            const mobileLinks = document.querySelectorAll(
+                '#snippet--basketNavbarAjax > a[href="/cart"], ' +
+                '#userCartDropdown2 > a[href="/cart"], ' +
+                '.navbar-toggler.nt-cart-ico[href="/cart"]'
+            );
+            
+            console.log('[MobileCartUpdater] Found mobile links:', mobileLinks.length);
+            
+            mobileLinks.forEach((link, index) => {
+                // Skip dropdown items
+                if (link.closest('.dropdown-menu')) {
+                    return;
                 }
                 
-                // Kontrola duplicit pomocí jedinečného identifikátoru
-                const linkId = this.getLinkIdentifier(mobileLink);
-                if (processedLinks.has(linkId)) {
-                    return; // Už zpracováno
-                }
-                processedLinks.add(linkId);
+                let priceEl = this.elements.get(link);
                 
-                // Získat nebo vytvořit price element
-                let priceEl = mobileLink.querySelector('.mobile-price');
-                
-                if (!priceEl) {
-                    // Element neexistuje - vytvořit
-                    priceEl = this.createPriceElement(mobileLink);
-                    // První nastavení - bez animace
-                    priceEl.textContent = ' ' + newPrice + ' ';
-                    priceEl.setAttribute('data-price-value', this.extractNumericValue(newPrice));
-                    console.log('[MobileCartUpdater] Initial price set:', newPrice);
-                } else {
-                    // Element existuje - zkontrolovat změnu
-                    const oldNumericValue = parseFloat(priceEl.getAttribute('data-price-value') || '0');
-                    const newNumericValue = this.extractNumericValue(newPrice);
+                // Zkontrolovat, zda element stále existuje v DOM
+                if (!priceEl || !link.contains(priceEl)) {
+                    // Najít existující nebo vytvořit nový
+                    priceEl = link.querySelector('.mobile-price-display');
                     
-                    if (Math.abs(oldNumericValue - newNumericValue) > 0.01) {
-                        // Cena se změnila - animovat
-                        console.log('[MobileCartUpdater] Price changed from', oldNumericValue, 'to', newNumericValue);
-                        this.animatePrice(priceEl, oldNumericValue, newNumericValue, newPrice);
-                        priceEl.setAttribute('data-price-value', newNumericValue);
+                    if (!priceEl) {
+                        priceEl = this.createPriceElement(link);
+                        console.log('[MobileCartUpdater] Created element for link', index);
                     }
+                    
+                    this.elements.set(link, priceEl);
+                }
+                
+                // Aktualizovat cenu
+                if (skipAnimation) {
+                    // První načtení - bez animace
+                    priceEl.textContent = priceText;
+                } else if (oldPrice !== null && oldPrice !== priceNum) {
+                    // Animovat změnu
+                    console.log('[MobileCartUpdater] Animating from', oldPrice, 'to', priceNum);
+                    this.animateValue(priceEl, priceNum);
                 }
             });
         },
         
-        getLinkIdentifier(link) {
-            // Vytvoř jedinečný identifikátor na základě pozice a tříd
-            const parent = link.parentElement;
-            const classes = link.className;
-            return `${parent?.id || 'no-id'}-${classes}`;
-        },
-        
-        extractNumericValue(priceStr) {
-            // Extrahovat číselnou hodnotu z ceny
-            const cleaned = priceStr.replace(/[^\d,.-]/g, '').replace(',', '.');
-            return parseFloat(cleaned) || 0;
-        },
-        
-        createPriceElement(mobileLink) {
+        createPriceElement(link) {
             const priceEl = document.createElement('span');
-            priceEl.className = 'mobile-price';
+            priceEl.className = 'mobile-price-display';
             
-            // Najít správné místo pro vložení
-            const icon = mobileLink.querySelector('svg, i.fa');
-            if (icon) {
-                // Vložit za ikonu
-                if (icon.nextSibling && icon.nextSibling.classList && icon.nextSibling.classList.contains('badge')) {
-                    // Vložit před badge
-                    icon.parentNode.insertBefore(priceEl, icon.nextSibling);
-                } else {
-                    // Vložit za ikonu
-                    icon.after(priceEl);
-                }
+            // Najít ikonu nebo badge
+            const icon = link.querySelector('svg, i.fa');
+            const badge = link.querySelector('.badge');
+            
+            if (icon && icon.nextSibling !== badge) {
+                // Vložit za ikonu (ale před badge pokud existuje)
+                icon.after(priceEl);
+            } else if (badge) {
+                // Vložit před badge
+                link.insertBefore(priceEl, badge);
             } else {
-                // Vložit před badge nebo na konec
-                const badge = mobileLink.querySelector('.badge');
-                if (badge) {
-                    mobileLink.insertBefore(priceEl, badge);
-                } else {
-                    mobileLink.appendChild(priceEl);
-                }
+                // Přidat na konec
+                link.appendChild(priceEl);
             }
             
-            console.log('[MobileCartUpdater] Created new price element');
             return priceEl;
         },
         
-        animatePrice(element, oldNum, newNum, finalText) {
-            console.log('[MobileCartUpdater] Starting animation from', oldNum, 'to', newNum);
+        animateValue(element, newValue) {
+            // Přidat animační třídu
+            element.classList.add('price-updating');
             
-            const duration = 500; // ms
-            const startTime = performance.now();
+            // Použít naši jednoduchou CountUp implementaci
+            const counter = new SimpleCountUp(element, newValue, {
+                duration: 0.6,
+                separator: ' ',
+                decimal: ',',
+                suffix: ' Kč'
+            });
             
-            // Určit počet desetinných míst
-            const decimals = finalText.includes(',') ? 2 : 0;
-            
-            // Přidat třídu pro styling během animace
-            element.classList.add('price-animating');
-            
-            const animate = (currentTime) => {
-                const elapsed = currentTime - startTime;
-                const progress = Math.min(elapsed / duration, 1);
+            counter.start(() => {
+                // Po dokončení animace
+                element.classList.remove('price-updating');
+                element.classList.add('price-updated');
                 
-                // Easing funkce - ease-out-cubic
-                const eased = 1 - Math.pow(1 - progress, 3);
-                
-                const currentNum = oldNum + (newNum - oldNum) * eased;
-                
-                // Formátovat zpět do českého formátu
-                let formatted;
-                if (decimals > 0) {
-                    formatted = currentNum.toFixed(decimals).replace('.', ',');
-                } else {
-                    formatted = Math.round(currentNum).toString();
-                }
-                
-                element.textContent = ' ' + formatted + ' Kč ';
-                
-                if (progress < 1) {
-                    requestAnimationFrame(animate);
-                } else {
-                    // Nastavit finální hodnotu
-                    element.textContent = ' ' + finalText + ' ';
-                    element.classList.remove('price-animating');
-                    
-                    // Flash efekt na konci
-                    element.classList.add('price-updated');
-                    setTimeout(() => {
-                        element.classList.remove('price-updated');
-                    }, 400);
-                }
-            };
-            
-            requestAnimationFrame(animate);
+                setTimeout(() => {
+                    element.classList.remove('price-updated');
+                }, 500);
+            });
         },
         
         hookIntoAjax() {
             const self = this;
+            let updateTimer = null;
             
-            // Debounce funkce pro zabránění vícenásobným voláním
-            let updateTimeout;
-            const debouncedUpdate = () => {
-                clearTimeout(updateTimeout);
-                updateTimeout = setTimeout(() => self.updateMobileCart(), 100);
+            const scheduleUpdate = () => {
+                clearTimeout(updateTimer);
+                updateTimer = setTimeout(() => {
+                    self.updateMobileCart(false);
+                }, 150);
             };
             
-            // 1. Hook na jQuery AJAX
+            // jQuery AJAX
             if (typeof jQuery !== 'undefined') {
-                jQuery(document).ajaxComplete(function(event, xhr, settings) {
-                    console.log('[MobileCartUpdater] AJAX complete:', settings.url);
-                    debouncedUpdate();
+                jQuery(document).ajaxComplete((event, xhr, settings) => {
+                    console.log('[MobileCartUpdater] AJAX complete');
+                    scheduleUpdate();
                 });
             }
             
-            // 2. Hook na XMLHttpRequest
-            const originalXHR = window.XMLHttpRequest.prototype.open;
-            window.XMLHttpRequest.prototype.open = function() {
-                this.addEventListener('load', function() {
+            // Native XHR
+            const origOpen = XMLHttpRequest.prototype.open;
+            XMLHttpRequest.prototype.open = function() {
+                this.addEventListener('loadend', () => {
                     console.log('[MobileCartUpdater] XHR complete');
-                    debouncedUpdate();
+                    scheduleUpdate();
                 });
-                return originalXHR.apply(this, arguments);
+                return origOpen.apply(this, arguments);
             };
             
-            // 3. Hook na fetch API
-            const originalFetch = window.fetch;
-            if (originalFetch) {
+            // Fetch API
+            const origFetch = window.fetch;
+            if (origFetch) {
                 window.fetch = function(...args) {
-                    return originalFetch.apply(this, args).then(response => {
-                        console.log('[MobileCartUpdater] Fetch complete:', args[0]);
-                        debouncedUpdate();
+                    return origFetch.apply(this, args).then(response => {
+                        console.log('[MobileCartUpdater] Fetch complete');
+                        scheduleUpdate();
                         return response;
                     });
                 };
             }
             
-            // 4. MutationObserver pro zachycení DOM změn
-            const observer = new MutationObserver((mutations) => {
-                let shouldUpdate = false;
-                
-                mutations.forEach(mutation => {
-                    // Sledovat změny v snippetech
-                    if (mutation.target.id === 'snippet--basketTotalAjax' ||
-                        mutation.target.id === 'snippet--basketFixedAjax' ||
-                        mutation.target.id === 'userCartDropdown') {
-                        shouldUpdate = true;
-                    }
-                });
-                
-                if (shouldUpdate) {
-                    console.log('[MobileCartUpdater] DOM mutation detected');
-                    debouncedUpdate();
+            // MutationObserver
+            const observer = new MutationObserver(() => {
+                scheduleUpdate();
+            });
+            
+            // Sledovat jen důležité elementy
+            const targets = document.querySelectorAll('#snippet--basketTotalAjax, #userCartDropdown');
+            targets.forEach(target => {
+                if (target) {
+                    observer.observe(target, {
+                        childList: true,
+                        subtree: true,
+                        characterData: true
+                    });
                 }
             });
-            
-            // Sledovat snippety
-            const snippets = document.querySelectorAll('[id^="snippet--basketTotalAjax"], #userCartDropdown');
-            snippets.forEach(snippet => {
-                observer.observe(snippet, {
-                    childList: true,
-                    subtree: true
-                });
-            });
-            
-            console.log('[MobileCartUpdater] AJAX hooks installed');
         },
         
         addStyles() {
-            if (document.getElementById('mobile-cart-updater-styles')) return;
+            if (document.getElementById('mobile-cart-styles-v4')) return;
             
             const style = document.createElement('style');
-            style.id = 'mobile-cart-updater-styles';
+            style.id = 'mobile-cart-styles-v4';
             style.textContent = `
                 @media (max-width: 1200px) {
-                    .mobile-price {
-                        white-space: nowrap;
+                    .mobile-price-display {
                         display: inline-block !important;
+                        margin: 0 5px;
                         font-variant-numeric: tabular-nums;
-                        transition: color 0.3s ease;
+                        white-space: nowrap;
+                        transition: transform 0.2s ease, color 0.2s ease;
                     }
                     
-                    .mobile-price.price-animating {
-                        color: #007bff !important;
+                    .mobile-price-display.price-updating {
+                        color: #007bff;
+                        transform: scale(1.1);
                         font-weight: 600;
                     }
                     
-                    .mobile-price.price-updated {
-                        animation: priceFlash 0.4s ease;
+                    .mobile-price-display.price-updated {
+                        animation: successFlash 0.5s ease;
                     }
                     
-                    /* Skrýt v rozbalovacím menu */
-                    .dropdown-menu .mobile-price {
+                    /* Skrýt v dropdown menu */
+                    .dropdown-menu .mobile-price-display {
                         display: none !important;
                     }
                     
-                    @keyframes priceFlash {
-                        0% {
-                            background: transparent;
+                    @keyframes successFlash {
+                        0%, 100% { 
+                            background: transparent; 
                         }
-                        50% {
-                            background: rgba(40, 167, 69, 0.2);
-                            border-radius: 3px;
-                            padding: 0 3px;
-                        }
-                        100% {
-                            background: transparent;
+                        50% { 
+                            background: rgba(40, 167, 69, 0.15);
+                            padding: 2px 5px;
+                            border-radius: 4px;
                         }
                     }
                 }
                 
                 @media (min-width: 1201px) {
-                    .mobile-price {
+                    .mobile-price-display {
                         display: none !important;
                     }
                 }
             `;
             document.head.appendChild(style);
-            console.log('[MobileCartUpdater] Styles added');
-        },
-        
-        // Pomocná metoda pro debugging
-        debug() {
-            const elements = document.querySelectorAll('.mobile-price');
-            console.log('[MobileCartUpdater] Found price elements:', elements.length);
-            elements.forEach(el => {
-                console.log('Element:', el, 'Value:', el.getAttribute('data-price-value'), 'Text:', el.textContent);
-            });
         }
     };
     
-    // Inicializace
+    // Čekat na DOM
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => MobileCartUpdater.init(), 200);
+            MobileCartUpdater.init();
         });
     } else {
-        setTimeout(() => MobileCartUpdater.init(), 200);
+        setTimeout(() => MobileCartUpdater.init(), 100);
     }
     
-    // Export pro debugging
+    // Export
     window.MobileCartUpdater = MobileCartUpdater;
     
 })();
