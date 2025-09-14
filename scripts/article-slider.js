@@ -3,7 +3,7 @@
  * Převádí seznam článků na interaktivní slider pomocí Swiper.js
  * Založeno na ProductSlider v2.2.0
  * 
- * @version 5.0.0 - S tlačítkem Všechny články
+ * @version 6.0.0 - S opravou centrování tlačítek
  * @requires jQuery 3.4.1+
  * @requires Swiper 11+
  */
@@ -174,11 +174,12 @@
                 // Vytvoř wrapper pro centrování tlačítka BEZ ŠIPKY
                 const $textWrapper = $article.find('.gapy-3');
                 if ($textWrapper.length && articleHref && !$textWrapper.find('.btn-to-cart').length) {
-                    // Vytvoř kontejner pro tlačítko
-                    const $buttonWrapper = $('<div class="article-button-wrapper"></div>');
+                    // Vytvoř kontejner pro tlačítko s inline stylem pro centrování
+                    const $buttonWrapper = $('<div class="article-button-wrapper" style="text-align: center; width: 100%;"></div>');
                     const $discoverBtn = $('<a>')
                         .attr('href', articleHref)
                         .attr('class', 'btn fg bg-se ca-l btn-to-cart sh-md ff-adv')
+                        .attr('style', 'display: inline-block; margin: 0 auto;')
                         .text('Objevit'); // BEZ ŠIPKY
                     
                     $buttonWrapper.append($discoverBtn);
@@ -198,10 +199,11 @@
             
             // PŘIDEJ TLAČÍTKO "VŠECHNY ČLÁNKY" POD SLIDER
             if (!$container.find('.all-articles-wrapper').length) {
-                const $allArticlesWrapper = $('<div class="all-articles-wrapper"></div>');
+                const $allArticlesWrapper = $('<div class="all-articles-wrapper" style="text-align: center; width: 100%;"></div>');
                 const $allArticlesBtn = $('<a>')
                     .attr('href', this.config.allArticlesUrl)
                     .attr('class', 'btn fg bg-se ca-l btn-to-cart sh-md ff-adv')
+                    .attr('style', 'display: inline-block; margin: 0 auto;')
                     .html('Všechny články →'); // SE ŠIPKOU
                 
                 $allArticlesWrapper.append($allArticlesBtn);
@@ -448,6 +450,7 @@
                         flex-direction: column;
                         gap: 12px;
                         padding: 0 20px;
+                        width: 100%;
                     }
                     
                     /* Zkrácený popis */
@@ -458,24 +461,36 @@
                         -webkit-box-orient: vertical;
                     }
                     
-                    /* TLAČÍTKO OBJEVIT UPROSTŘED */
+                    /* CENTROVÁNÍ TLAČÍTKA OBJEVIT */
                     .article-slider-active .article-button-wrapper {
-                        display: flex;
-                        justify-content: center;
+                        display: flex !important;
+                        justify-content: center !important;
+                        align-items: center !important;
                         margin-top: 15px;
+                        width: 100% !important;
+                        text-align: center !important;
                     }
                     
-                    .article-slider-active .btn-to-cart {
-                        white-space: nowrap;
-                        display: inline-block;
+                    .article-slider-active .article-button-wrapper .btn-to-cart {
+                        display: inline-block !important;
+                        margin: 0 auto !important;
                     }
                     
-                    /* TLAČÍTKO VŠECHNY ČLÁNKY */
-                    .article-slider-active .all-articles-wrapper {
-                        display: flex;
-                        justify-content: center;
+                    /* CENTROVÁNÍ TLAČÍTKA VŠECHNY ČLÁNKY */
+                    .article-slider-active + .all-articles-wrapper,
+                    .all-articles-wrapper {
+                        display: flex !important;
+                        justify-content: center !important;
+                        align-items: center !important;
                         margin-top: 30px;
                         padding-top: 20px;
+                        width: 100% !important;
+                        text-align: center !important;
+                    }
+                    
+                    .all-articles-wrapper .btn-to-cart {
+                        display: inline-block !important;
+                        margin: 0 auto !important;
                     }
                     
                     /* NAVIGAČNÍ ŠIPKY - STEJNÉ JAKO ProductSlider */
@@ -648,7 +663,7 @@
          * Debug funkce
          */
         debug: function() {
-            console.log('ArticleSlider v5 Debug:');
+            console.log('ArticleSlider v6 Debug:');
             console.log('Instances:', this.instances);
             this.instances.forEach((instance, index) => {
                 console.log(`Slider ${index}:`, {
