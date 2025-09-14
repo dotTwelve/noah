@@ -2,7 +2,7 @@
  * Product Slider for NOAH Natural Products
  * Převádí grid produktů na interaktivní slider pomocí Swiper.js
  * 
- * @version 2.2.0
+ * @version 2.3.0 - Automatické skrývání navigačních šipek když není potřeba scrollovat
  * @requires jQuery 3.4.1+
  * @requires Swiper 11+
  */
@@ -84,6 +84,30 @@
 
                 self.createSlider($container, $grid, index);
             });
+        },
+
+        /**
+         * Kontrola, zda jsou potřeba navigační šipky
+         */
+        checkNavigationNeeded: function(swiper) {
+            const totalSlides = swiper.slides.length;
+            const slidesPerView = Math.floor(swiper.params.slidesPerView);
+            
+            // Skryj/zobraz navigaci podle potřeby
+            const needsNavigation = totalSlides > slidesPerView;
+            
+            const $prevButton = $(swiper.navigation.prevEl);
+            const $nextButton = $(swiper.navigation.nextEl);
+            
+            if (needsNavigation) {
+                $prevButton.show();
+                $nextButton.show();
+            } else {
+                $prevButton.hide();
+                $nextButton.hide();
+            }
+            
+            return needsNavigation;
         },
 
         /**
@@ -197,6 +221,10 @@
                             
                             // Oprav pagination po inicializaci
                             self.updatePagination(this);
+                            // Kontrola navigace při inicializaci
+                            self.checkNavigationNeeded(this);
+                            
+                            console.log('ProductSlider: Slider ' + index + ' inicializován s ' + this.slides.length + ' produkty');
                         },
                         
                         slideChange: function() {
@@ -214,7 +242,14 @@
                             // Aktualizuj pagination po změně breakpointu
                             setTimeout(() => {
                                 self.updatePagination(this);
+                                // Kontrola navigace při změně breakpointu
+                                self.checkNavigationNeeded(this);
                             }, 100);
+                        },
+                        
+                        resize: function() {
+                            // Kontrola navigace při změně velikosti okna
+                            self.checkNavigationNeeded(this);
                         }
                     }
                 };
@@ -239,6 +274,14 @@
         updatePagination: function(swiper) {
             const totalGroups = Math.ceil(swiper.slides.length / swiper.params.slidesPerGroup);
             const $pagination = $(swiper.pagination.el);
+            
+            // Skryj pagination pokud je jen jedna skupina
+            if (totalGroups <= 1) {
+                $pagination.hide();
+                return;
+            } else {
+                $pagination.show();
+            }
             
             // Vyčisti existující bullets
             $pagination.empty();
@@ -468,15 +511,19 @@
          * Debug funkce pro testování
          */
         debug: function() {
-            console.log('ProductSlider Debug Info:');
+            console.log('ProductSlider v2.3 Debug Info:');
             console.log('Instances:', this.instances);
             this.instances.forEach((instance, index) => {
+                const swiper = instance.swiper;
+                const needsNavigation = swiper.slides.length > Math.floor(swiper.params.slidesPerView);
                 console.log(`Slider ${index}:`, {
                     id: instance.id,
                     totalItems: instance.totalItems,
-                    activeIndex: instance.swiper.activeIndex,
-                    slidesPerGroup: instance.swiper.params.slidesPerGroup,
-                    slidesPerView: instance.swiper.params.slidesPerView
+                    activeIndex: swiper.activeIndex,
+                    slidesPerGroup: swiper.params.slidesPerGroup,
+                    slidesPerView: swiper.params.slidesPerView,
+                    needsNavigation: needsNavigation,
+                    navigationVisible: $(swiper.navigation.prevEl).is(':visible')
                 });
             });
         }
