@@ -308,14 +308,10 @@
                     }
                     
                     @media (max-width: 480px) {
-                        /* Explicitní reset paddingu */
+                        /* Negativní marginy pro card-group na mobilech */
                         .slider-active .card-group.swiper {
                             padding-left: 0 !important;
                             padding-right: 0 !important;
-                        }
-                        
-                        /* Negativní marginy pro swiper-wrapper na mobilech */
-                        .slider-active .swiper-wrapper {
                             margin-left: -16px;
                             margin-right: -16px;
                         }
