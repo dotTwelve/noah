@@ -396,6 +396,7 @@
                     console.log('Current index:', swiper.activeIndex);
                     console.log('Slides count:', swiper.slides.length);
                     console.log('Slides per view:', swiper.params.slidesPerView);
+                    console.log('Slides per group:', swiper.params.slidesPerGroup);
                     console.log('Is beginning:', swiper.isBeginning);
                     console.log('Is end:', swiper.isEnd);
                     
