@@ -1,6 +1,6 @@
 /**
  * Aktualizace mobilního košíku při AJAX změnách
- * Verze 4.0 - S CountUp.js pro spolehlivou animaci
+ * Verze 4.1 - Stabilní elementy s funkční animací
  */
 (function() {
     'use strict';
@@ -73,14 +73,46 @@
     }
     
     const MobileCartUpdater = {
-        elements: new Map(),
         lastPrice: null,
+        initialized: false,
         
         init() {
-            console.log('[MobileCartUpdater] Initializing v4.0...');
+            if (this.initialized) return;
+            this.initialized = true;
+            
+            console.log('[MobileCartUpdater] Initializing v4.1...');
             this.addStyles();
+            this.ensureElements();
             this.hookIntoAjax();
             this.updateMobileCart(true); // První update bez animace
+        },
+        
+        ensureElements() {
+            // Vytvořit elementy POUZE pokud neexistují
+            const mobileLinks = document.querySelectorAll(
+                '#snippet--basketNavbarAjax > a[href="/cart"], ' +
+                '#userCartDropdown2 > a[href="/cart"], ' +
+                '.navbar-toggler.nt-cart-ico[href="/cart"]'
+            );
+            
+            mobileLinks.forEach((link, index) => {
+                // Skip dropdown items
+                if (link.closest('.dropdown-menu')) {
+                    return;
+                }
+                
+                // Označit link unikátním ID
+                if (!link.hasAttribute('data-cart-id')) {
+                    link.setAttribute('data-cart-id', `cart-${index}`);
+                }
+                
+                // Zkontrolovat existenci elementu
+                let priceEl = link.querySelector('.mobile-price-display');
+                if (!priceEl) {
+                    priceEl = this.createPriceElement(link);
+                    console.log('[MobileCartUpdater] Created element for cart', index);
+                }
+            });
         },
         
         updateMobileCart(skipAnimation = false) {
@@ -112,43 +144,30 @@
             const oldPrice = this.lastPrice;
             this.lastPrice = priceNum;
             
-            // Najít mobilní linky - POUZE ty hlavní, ne v dropdown menu
-            const mobileLinks = document.querySelectorAll(
-                '#snippet--basketNavbarAjax > a[href="/cart"], ' +
-                '#userCartDropdown2 > a[href="/cart"], ' +
-                '.navbar-toggler.nt-cart-ico[href="/cart"]'
-            );
+            // Nejdřív zajistit, že elementy existují
+            this.ensureElements();
             
-            console.log('[MobileCartUpdater] Found mobile links:', mobileLinks.length);
+            // Najít všechny price elementy
+            const priceElements = document.querySelectorAll('.mobile-price-display');
             
-            mobileLinks.forEach((link, index) => {
+            priceElements.forEach((priceEl) => {
                 // Skip dropdown items
-                if (link.closest('.dropdown-menu')) {
+                if (priceEl.closest('.dropdown-menu')) {
                     return;
                 }
                 
-                let priceEl = this.elements.get(link);
-                
-                // Zkontrolovat, zda element stále existuje v DOM
-                if (!priceEl || !link.contains(priceEl)) {
-                    // Najít existující nebo vytvořit nový
-                    priceEl = link.querySelector('.mobile-price-display');
-                    
-                    if (!priceEl) {
-                        priceEl = this.createPriceElement(link);
-                        console.log('[MobileCartUpdater] Created element for link', index);
-                    }
-                    
-                    this.elements.set(link, priceEl);
-                }
+                // Získat aktuální hodnotu z data atributu
+                const currentValue = parseFloat(priceEl.getAttribute('data-value') || '0');
                 
                 // Aktualizovat cenu
-                if (skipAnimation) {
+                if (skipAnimation || currentValue === 0) {
                     // První načtení - bez animace
                     priceEl.textContent = priceText;
-                } else if (oldPrice !== null && oldPrice !== priceNum) {
+                    priceEl.setAttribute('data-value', priceNum);
+                } else if (Math.abs(currentValue - priceNum) > 0.01) {
                     // Animovat změnu
-                    console.log('[MobileCartUpdater] Animating from', oldPrice, 'to', priceNum);
+                    console.log('[MobileCartUpdater] Animating from', currentValue, 'to', priceNum);
+                    priceEl.setAttribute('data-value', priceNum);
                     this.animateValue(priceEl, priceNum);
                 }
             });
@@ -157,6 +176,8 @@
         createPriceElement(link) {
             const priceEl = document.createElement('span');
             priceEl.className = 'mobile-price-display';
+            priceEl.setAttribute('data-value', '0');
+            priceEl.textContent = '0 Kč';
             
             // Najít ikonu nebo badge
             const icon = link.querySelector('svg, i.fa');
@@ -229,21 +250,35 @@
                 };
             }
             
-            // MutationObserver
-            const observer = new MutationObserver(() => {
-                scheduleUpdate();
+            // MutationObserver - sledovat odstranění elementů
+            const observer = new MutationObserver((mutations) => {
+                let needsUpdate = false;
+                
+                mutations.forEach(mutation => {
+                    // Pokud byly odstraněny naše elementy
+                    mutation.removedNodes.forEach(node => {
+                        if (node.nodeType === 1) {
+                            if (node.classList?.contains('mobile-price-display') || 
+                                node.querySelector?.('.mobile-price-display')) {
+                                needsUpdate = true;
+                            }
+                        }
+                    });
+                });
+                
+                if (needsUpdate) {
+                    console.log('[MobileCartUpdater] Elements were removed, recreating...');
+                    setTimeout(() => {
+                        self.ensureElements();
+                        self.updateMobileCart(true);
+                    }, 50);
+                }
             });
             
-            // Sledovat jen důležité elementy
-            const targets = document.querySelectorAll('#snippet--basketTotalAjax, #userCartDropdown');
-            targets.forEach(target => {
-                if (target) {
-                    observer.observe(target, {
-                        childList: true,
-                        subtree: true,
-                        characterData: true
-                    });
-                }
+            // Sledovat změny v košíku
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
             });
         },
         
@@ -259,33 +294,12 @@
                         margin: 0 5px;
                         font-variant-numeric: tabular-nums;
                         white-space: nowrap;
-                        transition: transform 0.2s ease, color 0.2s ease;
-                    }
-                    
-                    .mobile-price-display.price-updating {
-                        color: #007bff;
-                        transform: scale(1.1);
-                        font-weight: 600;
-                    }
-                    
-                    .mobile-price-display.price-updated {
-                        animation: successFlash 0.5s ease;
+                        min-width: 70px;
                     }
                     
                     /* Skrýt v dropdown menu */
                     .dropdown-menu .mobile-price-display {
                         display: none !important;
-                    }
-                    
-                    @keyframes successFlash {
-                        0%, 100% { 
-                            background: transparent; 
-                        }
-                        50% { 
-                            background: rgba(40, 167, 69, 0.15);
-                            padding: 2px 5px;
-                            border-radius: 4px;
-                        }
                     }
                 }
                 
