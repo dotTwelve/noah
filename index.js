@@ -168,22 +168,22 @@
                         0: {
                             slidesPerView: 2,
                             slidesPerGroup: 2,
-                            spaceBetween: 10
+                            spaceBetween: 8
                         },
                         768: {
                             slidesPerView: 3,
                             slidesPerGroup: 3,
-                            spaceBetween: 15
+                            spaceBetween: 16
                         },
                         1024: {
                             slidesPerView: 4,
                             slidesPerGroup: 4,
-                            spaceBetween: 20
+                            spaceBetween: 16
                         },
                         1200: {
                             slidesPerView: 5,
                             slidesPerGroup: 5,
-                            spaceBetween: 20
+                            spaceBetween: 16
                         }
                     },
                     
