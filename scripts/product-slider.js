@@ -418,24 +418,7 @@
                         height: auto !important;
                     }
                     
-                    /* Responzivní styly - důležité pro mobily */
-                    @media screen and (max-width: 575px) {
-                        .slider-active .card-item.swiper-slide {
-                            width: 100% !important;
-                            max-width: 100% !important;
-                            flex: 0 0 100% !important;
-                        }
-                        
-                        .slider-active .swiper-wrapper {
-                            width: 100% !important;
-                        }
-                        
-                        .slider-active .card-group.swiper {
-                            margin: 0 !important;
-                            padding: 0 10px !important;
-                        }
-                    }
-                    
+                    /* Responzivní styly */
                     @media (max-width: 768px) {
                         .swiper-button-prev,
                         .swiper-button-next {
