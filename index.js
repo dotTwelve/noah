@@ -245,6 +245,8 @@
                     .slider-active .swiper {
                         overflow: hidden;
                         position: relative;
+                        margin-left: -16px;
+                        margin-right: -16px;
                     }
                     
                     /* Wrapper */
