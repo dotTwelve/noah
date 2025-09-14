@@ -1,8 +1,8 @@
 /**
- * Product Slider for NOAH Natural Products - Simplified Version
+ * Product Slider for NOAH Natural Products
  * Převádí grid produktů na interaktivní slider pomocí Swiper.js
  * 
- * @version 2.0.0
+ * @version 2.1.0
  * @requires jQuery 3.4.1+
  * @requires Swiper 11+
  */
@@ -87,7 +87,7 @@
         },
 
         /**
-         * Vytvoření jednotlivého slideru - MINIMÁLNÍ DOM MANIPULACE
+         * Vytvoření jednotlivého slideru
          */
         createSlider: function($container, $grid, index) {
             const self = this;
@@ -100,10 +100,7 @@
             const $items = $grid.find(this.config.itemSelector);
             const totalItems = $items.length;
             
-            console.log('ProductSlider: Nalezeno ' + totalItems + ' produktů pro slider ' + index);
-            
             if (totalItems === 0) {
-                console.warn('ProductSlider: Žádné produkty nenalezeny');
                 return;
             }
             
@@ -114,182 +111,119 @@
             // Přidej třídu každému produktu
             $items.addClass('swiper-slide');
             
-            // Obal existující produkty do wrapper (zachová všechny elementy)
+            // Obal existující produkty do wrapper
             $items.wrapAll('<div class="swiper-wrapper"></div>');
             
-            // Přidej navigaci MIMO wrapper
+            // Přidej navigaci
             $grid.append('<div class="swiper-button-prev"></div>');
             $grid.append('<div class="swiper-button-next"></div>');
             
-            // Přidej pagination pod slider
+            // Přidej pagination
             $container.append('<div class="swiper-pagination"></div>');
             
             // Přidej CSS styly
             this.addStyles();
             
             // Počkej na DOM update
-            // Počkej na DOM update
-// Počkej na DOM update
-setTimeout(function() {
-    // Konfigurace Swiperu
-    const swiperConfig = {
-        // Základní nastavení
-        slidesPerView: 2,
-        slidesPerGroup: 2, // MUSÍ být stejné jako slidesPerView
-        spaceBetween: 8,
-        watchOverflow: true,
-        threshold: 10,
-        speed: 600,
-        grabCursor: true,
-        
-        // Navigace
-        navigation: {
-            nextEl: '#' + sliderId + ' .swiper-button-next',
-            prevEl: '#' + sliderId + ' .swiper-button-prev',
-        },
-        
-        // Pagination - custom pro skupiny
-        pagination: {
-            el: $container.find('.swiper-pagination')[0],
-            clickable: true,
-            type: 'custom',
-            renderCustom: function (swiper, current, total) {
-                const currentGroup = Math.floor((current - 1) / swiper.params.slidesPerGroup) + 1;
-                const totalGroups = Math.ceil(swiper.slides.length / swiper.params.slidesPerGroup);
+            setTimeout(function() {
+                // Konfigurace Swiperu
+                const swiperConfig = {
+                    // Základní nastavení
+                    slidesPerView: 2,
+                    slidesPerGroup: 2,
+                    spaceBetween: 10,
+                    watchOverflow: true,
+                    threshold: 10,
+                    speed: 600,
+                    grabCursor: true,
+                    
+                    // Navigace
+                    navigation: {
+                        nextEl: '#' + sliderId + ' .swiper-button-next',
+                        prevEl: '#' + sliderId + ' .swiper-button-prev',
+                    },
+                    
+                    // Pagination - custom pro skupiny
+                    pagination: {
+                        el: $container.find('.swiper-pagination')[0],
+                        clickable: true,
+                        type: 'custom',
+                        renderCustom: function (swiper, current, total) {
+                            const currentGroup = Math.floor((current - 1) / swiper.params.slidesPerGroup) + 1;
+                            const totalGroups = Math.ceil(swiper.slides.length / swiper.params.slidesPerGroup);
+                            
+                            let bullets = '';
+                            for (let i = 1; i <= totalGroups; i++) {
+                                const slideIndex = (i - 1) * swiper.params.slidesPerGroup;
+                                const activeClass = (i === currentGroup) ? ' swiper-pagination-bullet-active' : '';
+                                bullets += '<span class="swiper-pagination-bullet' + activeClass + 
+                                          '" data-slide-to="' + slideIndex + '"></span>';
+                            }
+                            return bullets;
+                        }
+                    },
+                    
+                    // Responzivní breakpointy
+                    breakpoints: {
+                        0: {
+                            slidesPerView: 2,
+                            slidesPerGroup: 2,
+                            spaceBetween: 10
+                        },
+                        768: {
+                            slidesPerView: 3,
+                            slidesPerGroup: 3,
+                            spaceBetween: 15
+                        },
+                        1024: {
+                            slidesPerView: 4,
+                            slidesPerGroup: 4,
+                            spaceBetween: 20
+                        },
+                        1200: {
+                            slidesPerView: 5,
+                            slidesPerGroup: 5,
+                            spaceBetween: 20
+                        }
+                    },
+                    
+                    // Události
+                    on: {
+                        init: function() {
+                            // Zajisti správné nastavení skupin
+                            if (this.params.slidesPerGroup !== this.params.slidesPerView) {
+                                this.params.slidesPerGroup = this.params.slidesPerView;
+                                this.update();
+                            }
+                        },
+                        breakpoint: function() {
+                            // Ujisti se, že slidesPerGroup = slidesPerView při změně breakpointu
+                            if (this.params.slidesPerGroup !== this.params.slidesPerView) {
+                                this.params.slidesPerGroup = this.params.slidesPerView;
+                                this.update();
+                            }
+                        }
+                    }
+                };
                 
-                let bullets = '';
-                for (let i = 1; i <= totalGroups; i++) {
-                    const slideIndex = (i - 1) * swiper.params.slidesPerGroup;
-                    const activeClass = (i === currentGroup) ? ' swiper-pagination-bullet-active' : '';
-                    bullets += '<span class="swiper-pagination-bullet' + activeClass + 
-                              '" data-slide-to="' + slideIndex + '"></span>';
-                }
-                return bullets;
-            }
-        },
-        
-        // Responzivní breakpointy
-        breakpoints: {
-            0: {
-                slidesPerView: 2,
-                slidesPerGroup: 2,
-                spaceBetween: 10
-            },
-            768: {
-                slidesPerView: 3,
-                slidesPerGroup: 3,
-                spaceBetween: 15
-            },
-            1024: {
-                slidesPerView: 4,
-                slidesPerGroup: 4,
-                spaceBetween: 20
-            },
-            1200: {
-                slidesPerView: 5,
-                slidesPerGroup: 5,
-                spaceBetween: 20
-            }
-        },
-        
-        // Události
-        on: {
-            init: function() {
-                console.log('Slider inicializován:');
-                console.log('- Počet slidů:', this.slides.length);
-                console.log('- Slides per view:', this.params.slidesPerView);
-                console.log('- Slides per group:', this.params.slidesPerGroup);
+                // Inicializuj Swiper
+                const swiperInstance = new Swiper('#' + sliderId, swiperConfig);
                 
-                if (this.params.slidesPerGroup !== this.params.slidesPerView) {
-                    console.warn('⚠️ Opravuji slidesPerGroup');
-                    this.params.slidesPerGroup = this.params.slidesPerView;
-                    this.update();
-                }
+                // Přidej click event pro custom pagination
+                $container.find('.swiper-pagination').on('click', '.swiper-pagination-bullet', function() {
+                    const slideToIndex = parseInt($(this).attr('data-slide-to'));
+                    swiperInstance.slideTo(slideToIndex);
+                });
                 
-                self.checkSlides(this);
-            },
-            slideChange: function() {
-                const currentGroup = Math.floor(this.activeIndex / this.params.slidesPerGroup);
-                const totalGroups = Math.ceil(this.slides.length / this.params.slidesPerGroup);
-                console.log('Skupina:', currentGroup + 1, '/', totalGroups);
-            }
-        }
-    };
-    
-    // Inicializuj Swiper
-    const swiperInstance = new Swiper('#' + sliderId, swiperConfig);
-    
-    // Přidej click event pro custom pagination
-    $container.find('.swiper-pagination').on('click', '.swiper-pagination-bullet', function() {
-        const slideToIndex = parseInt($(this).attr('data-slide-to'));
-        swiperInstance.slideTo(slideToIndex);
-    });
-    
-    // Ulož instanci
-    self.instances.push({
-        id: sliderId,
-        container: $container[0],
-        swiper: swiperInstance,
-        totalItems: totalItems
-    });
-    
-    // Vlastní navigace pro skupinový posun (záložní řešení)
-    if (swiperInstance.params.slidesPerGroup === 1) {
-        console.warn('⚠️ Používám vlastní navigaci pro skupinový posun');
-        
-        $('#' + sliderId + ' .swiper-button-next').off('click').on('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            const toSlide = Math.min(
-                swiperInstance.activeIndex + swiperInstance.params.slidesPerView,
-                swiperInstance.slides.length - 1
-            );
-            swiperInstance.slideTo(toSlide);
-            return false;
-        });
-        
-        $('#' + sliderId + ' .swiper-button-prev').off('click').on('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            const toSlide = Math.max(
-                swiperInstance.activeIndex - swiperInstance.params.slidesPerView,
-                0
-            );
-            swiperInstance.slideTo(toSlide);
-            return false;
-        });
-    }
-    
-}, 50);
-        },
-
-        /**
-         * Kontrola slidů
-         */
-        checkSlides: function(swiper) {
-            let emptyCount = 0;
-            for (let i = 0; i < swiper.slides.length; i++) {
-                const $slide = $(swiper.slides[i]);
-                const hasContent = $slide.find('a, img, h4').length > 0;
+                // Ulož instanci
+                self.instances.push({
+                    id: sliderId,
+                    container: $container[0],
+                    swiper: swiperInstance,
+                    totalItems: totalItems
+                });
                 
-                if (!hasContent) {
-                    console.warn('Prázdný slide na pozici:', i);
-                    emptyCount++;
-                } else {
-                    // Ujisti se, že slide je viditelný
-                    $slide.css({
-                        'visibility': 'visible',
-                        'display': 'block'
-                    });
-                }
-            }
-            
-            if (emptyCount > 0) {
-                console.error('Nalezeno ' + emptyCount + ' prázdných slidů!');
-                // Pokus o opravu
-                swiper.update();
-                swiper.updateSlides();
-            }
+            }, 50);
         },
 
         /**
@@ -324,7 +258,7 @@ setTimeout(function() {
                         box-sizing: content-box;
                     }
                     
-                    /* Slides - DŮLEŽITÉ */
+                    /* Slides */
                     .slider-active .swiper-slide {
                         flex-shrink: 0;
                         width: 100%;
@@ -362,6 +296,7 @@ setTimeout(function() {
                         background: white;
                         border-radius: 50%;
                         box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+                        transition: all 0.3s ease;
                     }
                     
                     .swiper-button-prev {
@@ -377,6 +312,12 @@ setTimeout(function() {
                         font-size: 16px;
                         color: #333;
                         font-weight: bold;
+                    }
+                    
+                    .swiper-button-prev:hover,
+                    .swiper-button-next:hover {
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                        transform: scale(1.1);
                     }
                     
                     .swiper-button-disabled {
@@ -431,65 +372,21 @@ setTimeout(function() {
                         .swiper-button-next {
                             right: 5px;
                         }
-                    }
-                    
-                    /* Debug helper */
-                    .slider-debug .swiper-slide {
-                        border: 2px solid red !important;
+                        
+                        .swiper-pagination-bullet {
+                            width: 6px;
+                            height: 6px;
+                            margin: 0 3px;
+                        }
+                        
+                        .swiper-pagination-bullet-active {
+                            width: 20px;
+                        }
                     }
                 </style>
             `;
             
             $('head').append(styles);
-        },
-
-        /**
-         * Debug všech sliderů
-         */
-        debug: function() {
-            console.group('🔍 ProductSlider Debug');
-            
-            this.instances.forEach((instance, index) => {
-                console.group('Slider ' + index);
-                console.log('ID:', instance.id);
-                console.log('Total items:', instance.totalItems);
-                
-                if (instance.swiper) {
-                    const swiper = instance.swiper;
-                    console.log('Swiper initialized:', true);
-                    console.log('Current index:', swiper.activeIndex);
-                    console.log('Slides count:', swiper.slides.length);
-                    console.log('Slides per view:', swiper.params.slidesPerView);
-                    console.log('Slides per group:', swiper.params.slidesPerGroup);
-                    console.log('Is beginning:', swiper.isBeginning);
-                    console.log('Is end:', swiper.isEnd);
-                    
-                    // Kontrola prázdných slidů
-                    const emptySlides = [];
-                    for (let i = 0; i < swiper.slides.length; i++) {
-                        const $slide = $(swiper.slides[i]);
-                        if ($slide.find('a, img, h4').length === 0) {
-                            emptySlides.push(i);
-                        }
-                    }
-                    
-                    if (emptySlides.length > 0) {
-                        console.warn('⚠️ Prázdné slidy:', emptySlides);
-                    } else {
-                        console.log('✅ Všechny slidy mají obsah');
-                    }
-                    
-                    // Force update
-                    console.log('Provádím update...');
-                    swiper.update();
-                } else {
-                    console.error('❌ Swiper není inicializován!');
-                }
-                
-                console.groupEnd();
-            });
-            
-            console.groupEnd();
         },
 
         /**
@@ -513,7 +410,7 @@ setTimeout(function() {
         ProductSlider.init();
     });
 
-    // Export pro globální použití a debug
+    // Export pro globální použití
     window.ProductSlider = ProductSlider;
 
 })(jQuery);
