@@ -167,10 +167,17 @@
                 on: {
                     init: function() {
                         console.log('ProductSlider: Slider ' + index + ' inicializován');
+                        console.log('Počet slidů:', this.slides.length);
+                        console.log('Aktuální index:', this.activeIndex);
                         self.handleLazyLoad(this);
                     },
                     slideChange: function() {
+                        console.log('Slide změněn na index:', this.activeIndex);
+                        console.log('Real index:', this.realIndex);
                         self.handleLazyLoad(this);
+                    },
+                    reachEnd: function() {
+                        console.log('Dosažen konec slideru');
                     }
                 }
             });
