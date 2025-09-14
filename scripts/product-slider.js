@@ -223,7 +223,6 @@
                     .slider-active .card-group.swiper {
                         overflow: hidden;
                         position: relative;
-                        /* Zachovává původní marginy */
                     }
                     
                     .slider-active .swiper-wrapper {
@@ -308,7 +307,11 @@
                     }
                     
                     @media (max-width: 480px) {
-                        /* Negativní marginy pro card-group na mobilech */
+                        .slider-active .card-group {
+                            margin-left: -16px;
+                            margin-right: -16px;
+                        }
+                        
                         .slider-active .card-group.swiper {
                         }
                         
