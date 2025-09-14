@@ -3,7 +3,7 @@
  * Převádí seznam článků na interaktivní slider pomocí Swiper.js
  * Založeno na ProductSlider v2.2.0
  * 
- * @version 3.0.0 - S pozadím #f7f7ef a tlačítkem Objevit
+ * @version 4.0.0 - Finální úpravy
  * @requires jQuery 3.4.1+
  * @requires Swiper 11+
  */
@@ -19,12 +19,29 @@
             itemSelector: 'article',
             hrSelector: 'hr',
             nextButtonSelector: '.SNInextButton',
+            descriptionMaxLength: 150, // Maximální počet znaků v popisu
             swiperCDN: 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js',
             swiperCSS: 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css'
         },
 
         // Sledování inicializovaných sliderů
         instances: [],
+
+        /**
+         * Zkrácení textu na určitý počet znaků
+         */
+        truncateText: function(text, maxLength) {
+            if (text.length <= maxLength) return text;
+            
+            // Najdi poslední mezeru před limitem
+            const truncated = text.substr(0, maxLength);
+            const lastSpace = truncated.lastIndexOf(' ');
+            
+            if (lastSpace > 0) {
+                return truncated.substr(0, lastSpace) + '...';
+            }
+            return truncated + '...';
+        },
 
         /**
          * Inicializace modulu
@@ -129,6 +146,19 @@
                         return (className.match(/anim-delay-\d+/g) || []).join(' ');
                     });
                 
+                // Zkrať popis článku
+                const $description = $article.find('.text p');
+                if ($description.length) {
+                    const originalText = $description.text();
+                    const truncatedText = self.truncateText(originalText, self.config.descriptionMaxLength);
+                    
+                    // Ulož původní text jako data atribut a zobraz zkrácený
+                    $description
+                        .attr('data-original-text', originalText)
+                        .attr('title', originalText)
+                        .text(truncatedText);
+                }
+                
                 // Získej href odkaz z figure nebo h3
                 let articleHref = '';
                 const $figureLink = $article.find('figure[data-href]');
@@ -140,16 +170,18 @@
                     articleHref = $headingLink.attr('href');
                 }
                 
-                // Přidej tlačítko "Objevit" pokud máme odkaz a ještě tam není
-                if (articleHref) {
-                    const $textWrapper = $article.find('.gapy-3');
-                    if ($textWrapper.length && !$textWrapper.find('.btn-to-cart').length) {
-                        const $discoverBtn = $('<a>')
-                            .attr('href', articleHref)
-                            .attr('class', 'btn fg bg-se ca-l btn-to-cart mt-2 sh-md ff-adv')
-                            .html('Objevit →');
-                        $textWrapper.append($discoverBtn);
-                    }
+                // Vytvoř wrapper pro centrování tlačítka
+                const $textWrapper = $article.find('.gapy-3');
+                if ($textWrapper.length && articleHref && !$textWrapper.find('.btn-to-cart').length) {
+                    // Vytvoř kontejner pro tlačítko
+                    const $buttonWrapper = $('<div class="article-button-wrapper"></div>');
+                    const $discoverBtn = $('<a>')
+                        .attr('href', articleHref)
+                        .attr('class', 'btn fg bg-se ca-l btn-to-cart sh-md ff-adv')
+                        .html('Objevit →');
+                    
+                    $buttonWrapper.append($discoverBtn);
+                    $textWrapper.append($buttonWrapper);
                 }
             });
             
@@ -357,25 +389,21 @@
                         visibility: visible !important;
                     }
                     
-                    /* ČLÁNKY S POZADÍM #f7f7ef */
+                    /* ČLÁNKY S POZADÍM #f7f7ef BEZ HOVER EFEKTU */
                     .article-slider-active article {
                         height: 100%;
                         display: flex !important;
                         flex-direction: column;
                         gap: 20px;
                         background: #f7f7ef;
-                        padding: 20px;
+                        padding: 0 0 20px 0;
                         border-radius: 8px;
-                        transition: transform 0.3s ease, box-shadow 0.3s ease;
-                    }
-                    
-                    .article-slider-active article:hover {
-                        transform: translateY(-5px);
-                        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+                        overflow: hidden;
                     }
                     
                     /* Článek bez obrázku */
                     .article-slider-active article:not(:has(figure)) {
+                        padding: 20px;
                         justify-content: center;
                     }
                     
@@ -384,23 +412,20 @@
                         visibility: visible !important;
                     }
                     
-                    /* Obrázky - vyčnívají z paddingu */
+                    /* OBRÁZKY NA PLNOU ŠÍŘKU */
                     .article-slider-active article figure {
-                        margin: -20px -20px 0 -20px;
+                        margin: 0;
+                        padding: 0;
                         flex-shrink: 0;
                         overflow: hidden;
-                        border-radius: 8px 8px 0 0;
+                        width: 100%;
                     }
                     
                     .article-slider-active article figure img {
                         width: 100%;
                         height: auto;
                         object-fit: cover;
-                        transition: transform 0.3s ease;
-                    }
-                    
-                    .article-slider-active article:hover figure img {
-                        transform: scale(1.05);
+                        display: block;
                     }
                     
                     /* Text článků */
@@ -409,13 +434,27 @@
                         display: flex;
                         flex-direction: column;
                         gap: 12px;
+                        padding: 0 20px;
                     }
                     
-                    /* TLAČÍTKO OBJEVIT */
+                    /* Zkrácený popis */
+                    .article-slider-active article .text {
+                        overflow: hidden;
+                        display: -webkit-box;
+                        -webkit-line-clamp: 3;
+                        -webkit-box-orient: vertical;
+                    }
+                    
+                    /* TLAČÍTKO OBJEVIT UPROSTŘED */
+                    .article-slider-active .article-button-wrapper {
+                        display: flex;
+                        justify-content: center;
+                        margin-top: 15px;
+                    }
+                    
                     .article-slider-active .btn-to-cart {
-                        margin-top: auto !important;
-                        align-self: flex-start;
                         white-space: nowrap;
+                        display: inline-block;
                     }
                     
                     /* NAVIGAČNÍ ŠIPKY - STEJNÉ JAKO ProductSlider */
@@ -502,18 +541,24 @@
                         .article-slider-active article {
                             flex-direction: row;
                             align-items: flex-start;
+                            padding: 20px;
                         }
                         
                         .article-slider-active article figure {
                             width: 200px;
                             flex-shrink: 0;
-                            margin: -20px 0 -20px -20px;
-                            border-radius: 8px 0 0 8px;
+                            margin-right: 20px;
+                            border-radius: 8px;
+                            overflow: hidden;
                         }
                         
                         .article-slider-active article figure img {
                             aspect-ratio: 1;
                             height: 100%;
+                        }
+                        
+                        .article-slider-active article .gapy-3 {
+                            padding: 0;
                         }
                         
                         .article-slider-active article:not(:has(figure)) {
@@ -582,7 +627,7 @@
          * Debug funkce
          */
         debug: function() {
-            console.log('ArticleSlider v3 Debug:');
+            console.log('ArticleSlider v4 Debug:');
             console.log('Instances:', this.instances);
             this.instances.forEach((instance, index) => {
                 console.log(`Slider ${index}:`, {
