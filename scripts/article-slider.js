@@ -3,7 +3,7 @@
  * Převádí seznam článků na interaktivní slider pomocí Swiper.js
  * Založeno na ProductSlider v2.2.0
  * 
- * @version 4.0.0 - Finální úpravy
+ * @version 5.0.0 - S tlačítkem Všechny články
  * @requires jQuery 3.4.1+
  * @requires Swiper 11+
  */
@@ -20,6 +20,7 @@
             hrSelector: 'hr',
             nextButtonSelector: '.SNInextButton',
             descriptionMaxLength: 150, // Maximální počet znaků v popisu
+            allArticlesUrl: '/articles', // URL na všechny články
             swiperCDN: 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js',
             swiperCSS: 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css'
         },
@@ -170,7 +171,7 @@
                     articleHref = $headingLink.attr('href');
                 }
                 
-                // Vytvoř wrapper pro centrování tlačítka
+                // Vytvoř wrapper pro centrování tlačítka BEZ ŠIPKY
                 const $textWrapper = $article.find('.gapy-3');
                 if ($textWrapper.length && articleHref && !$textWrapper.find('.btn-to-cart').length) {
                     // Vytvoř kontejner pro tlačítko
@@ -178,7 +179,7 @@
                     const $discoverBtn = $('<a>')
                         .attr('href', articleHref)
                         .attr('class', 'btn fg bg-se ca-l btn-to-cart sh-md ff-adv')
-                        .html('Objevit →');
+                        .text('Objevit'); // BEZ ŠIPKY
                     
                     $buttonWrapper.append($discoverBtn);
                     $textWrapper.append($buttonWrapper);
@@ -194,6 +195,18 @@
             
             // Přidej pagination
             $container.append('<div class="swiper-pagination"></div>');
+            
+            // PŘIDEJ TLAČÍTKO "VŠECHNY ČLÁNKY" POD SLIDER
+            if (!$container.find('.all-articles-wrapper').length) {
+                const $allArticlesWrapper = $('<div class="all-articles-wrapper"></div>');
+                const $allArticlesBtn = $('<a>')
+                    .attr('href', this.config.allArticlesUrl)
+                    .attr('class', 'btn fg bg-se ca-l btn-to-cart sh-md ff-adv')
+                    .html('Všechny články →'); // SE ŠIPKOU
+                
+                $allArticlesWrapper.append($allArticlesBtn);
+                $container.append($allArticlesWrapper);
+            }
             
             // Přidej CSS styly
             this.addStyles();
@@ -457,6 +470,14 @@
                         display: inline-block;
                     }
                     
+                    /* TLAČÍTKO VŠECHNY ČLÁNKY */
+                    .article-slider-active .all-articles-wrapper {
+                        display: flex;
+                        justify-content: center;
+                        margin-top: 30px;
+                        padding-top: 20px;
+                    }
+                    
                     /* NAVIGAČNÍ ŠIPKY - STEJNÉ JAKO ProductSlider */
                     .article-slider-active .swiper-button-prev,
                     .article-slider-active .swiper-button-next {
@@ -627,7 +648,7 @@
          * Debug funkce
          */
         debug: function() {
-            console.log('ArticleSlider v4 Debug:');
+            console.log('ArticleSlider v5 Debug:');
             console.log('Instances:', this.instances);
             this.instances.forEach((instance, index) => {
                 console.log(`Slider ${index}:`, {
