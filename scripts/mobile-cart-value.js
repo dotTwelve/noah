@@ -151,7 +151,6 @@
             style.textContent = `
                 @media (max-width: 1200px) {
                     .mobile-price {
-                        font-weight: 600;
                         white-space: nowrap;
                         display: inline !important;
                     }
