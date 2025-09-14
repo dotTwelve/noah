@@ -605,8 +605,6 @@
                     /* RESPONZIVNÍ - MOBILY */
                     @media (max-width: 768px) {
                         .article-slider-active .swiper {
-                            margin-left: -16px;
-                            margin-right: -16px;
                         }
                     
                         .article-slider-active .swiper-button-prev,
