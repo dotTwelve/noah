@@ -3,7 +3,7 @@
  * Převádí seznam článků na interaktivní slider pomocí Swiper.js
  * Založeno na ProductSlider v2.2.0
  * 
- * @version 6.1.0 - Automatické skrývání navigačních šipek když není potřeba scrollovat
+ * @version 6.2.0 - Přidána kontrola pro přeskočení inicializace na .page-site a .is-category stránkách
  * @requires jQuery 3.4.1+
  * @requires Swiper 11+
  */
@@ -22,11 +22,29 @@
             descriptionMaxLength: 150, // Maximální počet znaků v popisu
             allArticlesUrl: '/clanky-o-zdravi', // URL na všechny články
             swiperCDN: 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js',
-            swiperCSS: 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css'
+            swiperCSS: 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css',
+            skipOnBodyClasses: ['page-site', 'is-category'] // Třídy body, kde se slider neinicializuje
         },
 
         // Sledování inicializovaných sliderů
         instances: [],
+
+        /**
+         * Kontrola, zda má být slider přeskočen na aktuální stránce
+         */
+        shouldSkipPage: function() {
+            const $body = $('body');
+            
+            // Kontrola, zda má body některou z tříd pro přeskočení
+            for (let className of this.config.skipOnBodyClasses) {
+                if ($body.hasClass(className)) {
+                    console.log('ArticleSlider: Přeskakuji inicializaci - nalezena třída body.' + className);
+                    return true;
+                }
+            }
+            
+            return false;
+        },
 
         /**
          * Zkrácení textu na určitý počet znaků
@@ -52,6 +70,11 @@
             
             if (typeof $ === 'undefined') {
                 console.error('ArticleSlider: jQuery není načteno');
+                return;
+            }
+
+            // Kontrola, zda má být slider na této stránce přeskočen
+            if (this.shouldSkipPage()) {
                 return;
             }
 
@@ -670,7 +693,9 @@
          * Debug funkce
          */
         debug: function() {
-            console.log('ArticleSlider v6.1 Debug:');
+            console.log('ArticleSlider v6.2 Debug:');
+            console.log('Body classes:', $('body').attr('class'));
+            console.log('Should skip page:', this.shouldSkipPage());
             console.log('Instances:', this.instances);
             this.instances.forEach((instance, index) => {
                 const swiper = instance.swiper;
