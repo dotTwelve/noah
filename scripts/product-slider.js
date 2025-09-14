@@ -2,7 +2,7 @@
  * Product Slider for NOAH Natural Products
  * Převádí grid produktů na interaktivní slider pomocí Swiper.js
  * 
- * @version 1.0.0
+ * @version 1.0.1
  * @requires jQuery 3.4.1+
  * @requires Swiper 11+
  */
@@ -223,6 +223,8 @@
                     .slider-active .card-group.swiper {
                         overflow: hidden;
                         position: relative;
+                        margin-left: -16px;
+                        margin-right: -16px;
                     }
                     
                     .slider-active .swiper-wrapper {
@@ -268,6 +270,7 @@
                     .swiper-button-disabled {
                         opacity: 0.35;
                         cursor: auto;
+                        pointer-events: none;
                     }
                     
                     /* Pagination */
@@ -284,6 +287,9 @@
                         opacity: 1;
                         margin: 0 4px;
                         transition: all 0.3s ease;
+                        display: inline-block;
+                        border-radius: 50%;
+                        cursor: pointer;
                     }
                     
                     .swiper-pagination-bullet-active {
@@ -307,12 +313,9 @@
                     }
                     
                     @media (max-width: 480px) {
-                        .slider-active .card-group {
-                            margin-left: -16px;
-                            margin-right: -16px;
-                        }
-                        
                         .slider-active .card-group.swiper {
+                            padding-left: 0 !important;
+                            padding-right: 0 !important;
                         }
                         
                         .swiper-button-prev,
@@ -324,6 +327,16 @@
                         .swiper-button-prev:after,
                         .swiper-button-next:after {
                             font-size: 12px;
+                        }
+                        
+                        .swiper-pagination-bullet {
+                            width: 6px;
+                            height: 6px;
+                            margin: 0 3px;
+                        }
+                        
+                        .swiper-pagination-bullet-active {
+                            width: 20px;
                         }
                     }
                 </style>
