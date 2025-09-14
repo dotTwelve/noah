@@ -233,11 +233,6 @@
             
             // Přidej CSS styly
             this.addStyles();
-            
-            // Zkontroluj a oprav slider po inicializaci
-            setTimeout(function() {
-                self.fixSliderIssues(swiperInstance);
-            }, 100);
         },
 
         /**
