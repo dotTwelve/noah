@@ -1,13 +1,16 @@
 /**
  * Aktualizace mobilního košíku při AJAX změnách
- * Verze 2.0 - Opravená detekce knihoven
+ * Verze 3.0 - Plynulá aktualizace bez blikání
  */
 (function() {
     'use strict';
     
     const MobileCartUpdater = {
+        currentPrice: null,
+        priceElements: new Map(), // Uchování reference na price elementy
+        
         init() {
-            console.log('[MobileCartUpdater] Initializing...');
+            console.log('[MobileCartUpdater] Initializing v3.0...');
             this.hookIntoAjax();
             this.addStyles();
             // První aktualizace
@@ -29,7 +32,16 @@
                 return;
             }
             
-            const price = match[0].trim();
+            const newPrice = match[0].trim();
+            
+            // Pokud se cena nezměnila, nic nedělat
+            if (this.currentPrice === newPrice) {
+                console.log('[MobileCartUpdater] Price unchanged:', newPrice);
+                return;
+            }
+            
+            const oldPrice = this.currentPrice;
+            this.currentPrice = newPrice;
             
             // Najít mobilní košík
             const mobileLinks = document.querySelectorAll('#snippet--basketNavbarAjax a[href="/cart"], #userCartDropdown2 > a');
@@ -39,48 +51,87 @@
                     return; // Skip if in dropdown menu
                 }
                 
-                // Aktualizovat nebo přidat cenu
-                let priceEl = mobileLink.querySelector('.mobile-price');
+                // Získat nebo vytvořit price element
+                let priceEl = this.priceElements.get(mobileLink);
                 
-                if (!priceEl) {
-                    priceEl = document.createElement('span');
-                    priceEl.className = 'mobile-price';
-                    
-                    // Najít správné místo pro vložení
-                    const icon = mobileLink.querySelector('svg, i.fa');
-                    if (icon) {
-                        // Vložit za ikonu
-                        if (icon.nextSibling && icon.nextSibling.classList && icon.nextSibling.classList.contains('badge')) {
-                            // Vložit před badge
-                            icon.parentNode.insertBefore(priceEl, icon.nextSibling);
-                        } else {
-                            // Vložit za ikonu
-                            icon.after(priceEl);
-                        }
-                    } else {
-                        // Vložit před badge nebo na konec
-                        const badge = mobileLink.querySelector('.badge');
-                        if (badge) {
-                            mobileLink.insertBefore(priceEl, badge);
-                        } else {
-                            mobileLink.appendChild(priceEl);
-                        }
-                    }
+                if (!priceEl || !mobileLink.contains(priceEl)) {
+                    // Element neexistuje nebo byl odstraněn z DOM
+                    priceEl = this.createPriceElement(mobileLink);
+                    this.priceElements.set(mobileLink, priceEl);
                 }
                 
-                priceEl.textContent = ' ' + price + ' ';
-                console.log('[MobileCartUpdater] Updated price to:', price);
+                // Aktualizovat cenu s animací
+                this.animatePriceChange(priceEl, oldPrice, newPrice);
             });
+        },
+        
+        createPriceElement(mobileLink) {
+            const priceEl = document.createElement('span');
+            priceEl.className = 'mobile-price';
+            
+            // Najít správné místo pro vložení
+            const icon = mobileLink.querySelector('svg, i.fa');
+            if (icon) {
+                // Vložit za ikonu
+                if (icon.nextSibling && icon.nextSibling.classList && icon.nextSibling.classList.contains('badge')) {
+                    // Vložit před badge
+                    icon.parentNode.insertBefore(priceEl, icon.nextSibling);
+                } else {
+                    // Vložit za ikonu
+                    icon.after(priceEl);
+                }
+            } else {
+                // Vložit před badge nebo na konec
+                const badge = mobileLink.querySelector('.badge');
+                if (badge) {
+                    mobileLink.insertBefore(priceEl, badge);
+                } else {
+                    mobileLink.appendChild(priceEl);
+                }
+            }
+            
+            console.log('[MobileCartUpdater] Created new price element');
+            return priceEl;
+        },
+        
+        animatePriceChange(element, oldPrice, newPrice) {
+            if (!oldPrice) {
+                // První nastavení ceny - bez animace
+                element.textContent = ' ' + newPrice + ' ';
+                element.classList.add('price-initialized');
+                console.log('[MobileCartUpdater] Initial price set:', newPrice);
+            } else {
+                // Změna ceny - s animací
+                element.classList.add('price-updating');
+                
+                // Postupná změna opacity
+                element.style.opacity = '0.3';
+                
+                setTimeout(() => {
+                    element.textContent = ' ' + newPrice + ' ';
+                    element.style.opacity = '1';
+                    element.classList.add('price-changed');
+                    
+                    // Pulzující efekt pro upozornění na změnu
+                    setTimeout(() => {
+                        element.classList.remove('price-changed');
+                        element.classList.remove('price-updating');
+                    }, 600);
+                }, 150);
+                
+                console.log('[MobileCartUpdater] Price updated from', oldPrice, 'to', newPrice);
+            }
         },
         
         hookIntoAjax() {
             const self = this;
             
-            // 1. Hook na jQuery AJAX (nejběžnější)
+            // 1. Hook na jQuery AJAX
             if (typeof jQuery !== 'undefined') {
                 jQuery(document).ajaxComplete(function(event, xhr, settings) {
                     console.log('[MobileCartUpdater] AJAX complete:', settings.url);
-                    setTimeout(() => self.updateMobileCart(), 100);
+                    // Kratší zpoždění pro rychlejší odezvu
+                    setTimeout(() => self.updateMobileCart(), 50);
                 });
             }
             
@@ -89,7 +140,7 @@
             window.XMLHttpRequest.prototype.open = function() {
                 this.addEventListener('load', function() {
                     console.log('[MobileCartUpdater] XHR complete');
-                    setTimeout(() => self.updateMobileCart(), 100);
+                    setTimeout(() => self.updateMobileCart(), 50);
                 });
                 return originalXHR.apply(this, arguments);
             };
@@ -100,13 +151,13 @@
                 window.fetch = function(...args) {
                     return originalFetch.apply(this, args).then(response => {
                         console.log('[MobileCartUpdater] Fetch complete:', args[0]);
-                        setTimeout(() => self.updateMobileCart(), 100);
+                        setTimeout(() => self.updateMobileCart(), 50);
                         return response;
                     });
                 };
             }
             
-            // 4. MutationObserver jako záloha
+            // 4. MutationObserver pro zachycení DOM změn
             const observer = new MutationObserver((mutations) => {
                 let shouldUpdate = false;
                 
@@ -114,30 +165,33 @@
                     // Sledovat změny v snippetech
                     if (mutation.target.id === 'snippet--basketTotalAjax' ||
                         mutation.target.id === 'snippet--basketFixedAjax' ||
-                        mutation.target.id === 'snippet--basketNavbarAjax') {
+                        mutation.target.id === 'snippet--basketNavbarAjax' ||
+                        mutation.target.id === 'userCartDropdown') {
+                        shouldUpdate = true;
+                    }
+                    
+                    // Sledovat změny textu v desktop košíku
+                    if (mutation.type === 'characterData' && 
+                        mutation.target.parentElement && 
+                        mutation.target.parentElement.closest('.btn')) {
                         shouldUpdate = true;
                     }
                 });
                 
                 if (shouldUpdate) {
                     console.log('[MobileCartUpdater] DOM mutation detected');
-                    setTimeout(() => self.updateMobileCart(), 100);
+                    setTimeout(() => self.updateMobileCart(), 50);
                 }
             });
             
-            // Sledovat všechny snippety
-            const snippets = document.querySelectorAll('[id^="snippet--"]');
+            // Sledovat snippety
+            const snippets = document.querySelectorAll('[id^="snippet--"], #userCartDropdown');
             snippets.forEach(snippet => {
                 observer.observe(snippet, {
                     childList: true,
-                    subtree: true
+                    subtree: true,
+                    characterData: true
                 });
-            });
-            
-            // Sledovat také body pro dynamicky přidané elementy
-            observer.observe(document.body, {
-                childList: true,
-                subtree: true
             });
             
             console.log('[MobileCartUpdater] AJAX hooks installed');
@@ -153,11 +207,46 @@
                     .mobile-price {
                         white-space: nowrap;
                         display: inline !important;
+                        transition: opacity 0.15s ease, transform 0.3s ease;
+                    }
+                    
+                    .mobile-price.price-initialized {
+                        animation: fadeIn 0.3s ease;
+                    }
+                    
+                    .mobile-price.price-changed {
+                        animation: pulse 0.6s ease;
+                        color: #28a745;
+                        font-weight: bold;
+                    }
+                    
+                    .mobile-price.price-updating {
+                        transform: scale(0.95);
                     }
                     
                     /* Skrýt v rozbalovacím menu */
                     .dropdown-menu .mobile-price {
                         display: none !important;
+                    }
+                    
+                    @keyframes fadeIn {
+                        from {
+                            opacity: 0;
+                            transform: translateY(-2px);
+                        }
+                        to {
+                            opacity: 1;
+                            transform: translateY(0);
+                        }
+                    }
+                    
+                    @keyframes pulse {
+                        0%, 100% {
+                            transform: scale(1);
+                        }
+                        50% {
+                            transform: scale(1.05);
+                        }
                     }
                 }
                 
@@ -169,6 +258,12 @@
             `;
             document.head.appendChild(style);
             console.log('[MobileCartUpdater] Styles added');
+        },
+        
+        // Pomocná metoda pro ruční refresh (pro debugging)
+        refresh() {
+            this.currentPrice = null; // Vynutit aktualizaci
+            this.updateMobileCart();
         }
     };
     
