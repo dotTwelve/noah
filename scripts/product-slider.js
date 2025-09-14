@@ -310,10 +310,6 @@
                     @media (max-width: 480px) {
                         /* Negativní marginy pro card-group na mobilech */
                         .slider-active .card-group.swiper {
-                            padding-left: 0 !important;
-                            padding-right: 0 !important;
-                            margin-left: -16px;
-                            margin-right: -16px;
                         }
                         
                         .swiper-button-prev,
