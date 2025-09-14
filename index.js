@@ -8,7 +8,7 @@
         baseUrl: 'https://dottwelve.github.io/noah/',
         scripts: [
             'scripts/quantity-selector.js',
-            'scripts/empty-href-remover.js',
+            'scripts/empty-href-remover.js'
             // Další skripty můžeš přidat zde
         ]
     };
