@@ -133,7 +133,7 @@
             // Inicializuj Swiper
             const swiperInstance = new Swiper('#' + sliderId, {
                 slidesPerView: 1,
-                spaceBetween: 20, // Zachová původní mezery mezi produkty
+                spaceBetween: 8, // 4px margin vlevo + 4px margin vpravo = 8px mezera
                 watchOverflow: true,
                 centerInsufficientSlides: true,
                 loop: this.config.loop,
@@ -222,7 +222,7 @@
                     .slider-active .card-group.swiper {
                         overflow: hidden;
                         position: relative;
-                        padding: 0;
+                        padding: 0 50px;
                     }
                     
                     .slider-active .swiper-wrapper {
@@ -292,7 +292,7 @@
                     
                     @media (max-width: 768px) {
                         .slider-active .card-group.swiper {
-                            padding: 0;
+                            padding: 0 35px;
                         }
                         
                         .swiper-button-prev,
@@ -309,7 +309,7 @@
                     
                     @media (max-width: 480px) {
                         .slider-active .card-group.swiper {
-                            padding: 0;
+                            padding: 0 25px;
                         }
                         
                         .swiper-button-prev,
