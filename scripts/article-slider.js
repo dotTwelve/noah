@@ -572,36 +572,6 @@
                         border-radius: 4px;
                     }
                     
-                    /* RESPONZIVNÍ - TABLETY */
-                    @media (min-width: 768px) and (max-width: 1199px) {
-                        .article-slider-active article {
-                            flex-direction: row;
-                            align-items: flex-start;
-                            padding: 20px;
-                        }
-                        
-                        .article-slider-active article figure {
-                            width: 200px;
-                            flex-shrink: 0;
-                            margin-right: 20px;
-                            border-radius: 8px;
-                            overflow: hidden;
-                        }
-                        
-                        .article-slider-active article figure img {
-                            aspect-ratio: 1;
-                            height: 100%;
-                        }
-                        
-                        .article-slider-active article .gapy-3 {
-                            padding: 0;
-                        }
-                        
-                        .article-slider-active article:not(:has(figure)) {
-                            align-items: center;
-                        }
-                    }
-                    
                     /* RESPONZIVNÍ - MOBILY */
                     @media (max-width: 768px) {
                         .article-slider-active .swiper {
