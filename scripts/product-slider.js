@@ -22,11 +22,11 @@
             autoplay: false,
             loop: false,
             slidesPerView: {
-                320: 1,
-                480: 2,
-                768: 3,
-                1024: 4,
-                1200: 5
+                320: 1,  // 320-575px: 1 produkt
+                576: 2,  // 576-767px: 2 produkty
+                768: 3,  // 768-1023px: 3 produkty
+                1024: 4, // 1024-1199px: 4 produkty
+                1200: 5  // 1200px+: 5 produktů
             }
         },
 
@@ -219,10 +219,11 @@
 
             const styles = `
                 <style id="product-slider-styles">
+                    /* Základní styly pro slider */
                     .slider-active .card-group.swiper {
                         overflow: hidden;
                         position: relative;
-                        padding: 0 50px;
+                        /* Zachovává původní marginy */
                     }
                     
                     .slider-active .swiper-wrapper {
@@ -237,6 +238,7 @@
                         display: block !important;
                     }
                     
+                    /* Navigační šipky */
                     .swiper-button-prev,
                     .swiper-button-next {
                         position: absolute;
@@ -269,6 +271,7 @@
                         cursor: auto;
                     }
                     
+                    /* Pagination */
                     .swiper-pagination {
                         position: relative;
                         text-align: center;
@@ -290,11 +293,8 @@
                         border-radius: 4px;
                     }
                     
+                    /* Responzivní styly */
                     @media (max-width: 768px) {
-                        .slider-active .card-group.swiper {
-                            padding: 0 35px;
-                        }
-                        
                         .swiper-button-prev,
                         .swiper-button-next {
                             width: 36px;
@@ -308,8 +308,10 @@
                     }
                     
                     @media (max-width: 480px) {
+                        /* Explicitní reset paddingu */
                         .slider-active .card-group.swiper {
-                            padding: 0 25px;
+                            padding-left: 0 !important;
+                            padding-right: 0 !important;
                         }
                         
                         .swiper-button-prev,
@@ -360,10 +362,8 @@
                 const isActive = $(instance.container).hasClass('slider-active');
                 
                 if (shouldBeActive && !isActive) {
-                    // Aktivuj slider
                     this.enableSlider(instance);
                 } else if (!shouldBeActive && isActive) {
-                    // Deaktivuj slider
                     this.disableSlider(instance);
                 }
             });
