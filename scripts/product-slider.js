@@ -222,7 +222,7 @@
                     .slider-active .card-group.swiper {
                         overflow: hidden;
                         position: relative;
-                        padding: 0 50px;
+                        padding: 0;
                     }
                     
                     .slider-active .swiper-wrapper {
@@ -292,7 +292,7 @@
                     
                     @media (max-width: 768px) {
                         .slider-active .card-group.swiper {
-                            padding: 0 35px;
+                            padding: 0;
                         }
                         
                         .swiper-button-prev,
