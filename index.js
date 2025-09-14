@@ -196,6 +196,33 @@
                     totalItems: totalItems
                 });
                 
+                // Vlastní navigace pro skupinový posun (záložní řešení)
+                if (swiperInstance.params.slidesPerGroup === 1) {
+                    console.warn('⚠️ Používám vlastní navigaci pro skupinový posun');
+                    
+                    $('#' + sliderId + ' .swiper-button-next').off('click').on('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const toSlide = Math.min(
+                            swiperInstance.activeIndex + swiperInstance.params.slidesPerView,
+                            swiperInstance.slides.length - 1
+                        );
+                        swiperInstance.slideTo(toSlide);
+                        return false;
+                    });
+                    
+                    $('#' + sliderId + ' .swiper-button-prev').off('click').on('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const toSlide = Math.max(
+                            swiperInstance.activeIndex - swiperInstance.params.slidesPerView,
+                            0
+                        );
+                        swiperInstance.slideTo(toSlide);
+                        return false;
+                    });
+                }
+                
             }, 50);
         },
 
