@@ -177,9 +177,6 @@
         },
         
         animateValue(element, newValue) {
-            // Přidat animační třídu
-            element.classList.add('price-updating');
-            
             // Použít naši jednoduchou CountUp implementaci
             const counter = new SimpleCountUp(element, newValue, {
                 duration: 0.6,
@@ -188,15 +185,7 @@
                 suffix: ' Kč'
             });
             
-            counter.start(() => {
-                // Po dokončení animace
-                element.classList.remove('price-updating');
-                element.classList.add('price-updated');
-                
-                setTimeout(() => {
-                    element.classList.remove('price-updated');
-                }, 500);
-            });
+            counter.start();
         },
         
         hookIntoAjax() {
