@@ -309,7 +309,7 @@
                     
                     @media (max-width: 480px) {
                         .slider-active .card-group.swiper {
-                            padding: 0 25px;
+                            padding: 0;
                         }
                         
                         .swiper-button-prev,
