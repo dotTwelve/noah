@@ -66,6 +66,11 @@
                     .dropdown-menu .mobile-cart-price {
                         display: none !important;
                     }
+                    
+                    /* Skrýt uc-amount v mobilní navigaci */
+                    #snippet--basketNavbarAjax .uc-amount {
+                        display: none !important;
+                    }
                 }
                 
                 @media (min-width: 1201px) {
