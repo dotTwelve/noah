@@ -180,7 +180,7 @@
                         .attr('href', articleHref)
                         .attr('class', 'btn fg bg-se ca-l btn-to-cart sh-md ff-adv')
                         .attr('style', 'display: inline-block; margin: 0 auto;')
-                        .text('Objevit'); // BEZ ŠIPKY
+                        .text('Číst'); // BEZ ŠIPKY
                     
                     $buttonWrapper.append($discoverBtn);
                     $textWrapper.append($buttonWrapper);
