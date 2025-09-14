@@ -30,6 +30,13 @@
                 enabled: true,
                 description: 'Převod gridu produktů na slider',
                 dependencies: ['jquery']
+            },
+            {
+                name: 'article-slider',
+                file: 'scripts/article-slider.js',
+                enabled: true,
+                description: 'Převod gridu článků na slider',
+                dependencies: ['jquery']
             }
         ],
         version: '1.2.0',
