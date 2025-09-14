@@ -13,7 +13,7 @@
         // Konfigurace
         config: {
             maxWidth: 768,
-            targetSelector: '#userCartDropdown2',
+            targetSelector: '#userCartDropdown2', // Kontejner, ve kterém hledáme odkaz
             currencySymbol: 'Kč',
             decimalSeparator: ',',
             thousandsSeparator: ' ',
@@ -134,36 +134,38 @@
                 return;
             }
             
-            const targetElement = document.querySelector(this.config.targetSelector);
-            if (!targetElement) {
-                this.log('Target element nenalezen', 'error');
+            // Najít odkaz uvnitř #userCartDropdown2
+            const targetLink = document.querySelector(this.config.targetSelector + ' a');
+            if (!targetLink) {
+                this.log('Target link nenalezen', 'error');
                 return;
             }
             
             const cartValue = this.getCartValue();
             
-            // Najít nebo vytvořit element
-            let valueElement = targetElement.querySelector('.' + this.config.elementClass);
+            // Najít nebo vytvořit span element
+            let valueElement = targetLink.querySelector('.' + this.config.elementClass);
             
             if (!valueElement) {
-                valueElement = document.createElement('div');
+                valueElement = document.createElement('span');
                 valueElement.className = this.config.elementClass;
                 
-                // Vložit na začátek dropdown menu
-                if (targetElement.firstChild) {
-                    targetElement.insertBefore(valueElement, targetElement.firstChild);
+                // Najít ikonu (obvykle první element v odkazu)
+                const icon = targetLink.querySelector('i, svg, .icon, [class*="fa-"], [class*="icon-"]');
+                
+                if (icon && icon.nextSibling) {
+                    // Vložit za ikonu
+                    icon.parentNode.insertBefore(valueElement, icon.nextSibling);
                 } else {
-                    targetElement.appendChild(valueElement);
+                    // Pokud ikona není nalezena, vložit na konec odkazu
+                    targetLink.appendChild(valueElement);
                 }
             }
             
             // Aktualizovat hodnotu
             if (cartValue !== null && cartValue > 0) {
-                valueElement.innerHTML = `
-                    <div class="cart-total-label">Celkem v košíku:</div>
-                    <div class="cart-total-value">${this.formatPrice(cartValue)} ${this.config.currencySymbol}</div>
-                `;
-                valueElement.style.display = 'block';
+                valueElement.textContent = ` (${this.formatPrice(cartValue)} ${this.config.currencySymbol})`;
+                valueElement.style.display = 'inline';
                 this.log(`Zobrazena hodnota: ${cartValue}`);
             } else {
                 valueElement.style.display = 'none';
@@ -293,31 +295,25 @@
                 <style id="mobile-cart-value-styles">
                     @media (max-width: 768px) {
                         .mobile-cart-value {
-                            padding: 12px 15px;
-                            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-                            border-bottom: 2px solid #dee2e6;
-                            text-align: center;
-                            font-size: 14px;
-                            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-                        }
-                        
-                        .mobile-cart-value .cart-total-label {
-                            color: #6c757d;
-                            font-size: 12px;
-                            margin-bottom: 4px;
-                            text-transform: uppercase;
-                            letter-spacing: 0.5px;
-                        }
-                        
-                        .mobile-cart-value .cart-total-value {
+                            display: inline;
+                            font-weight: 600;
                             color: #27ae60;
-                            font-size: 18px;
-                            font-weight: 700;
+                            margin-left: 5px;
+                            font-size: inherit;
                         }
                         
-                        #userCartDropdown2 .mobile-cart-value:first-child {
-                            border-top: none;
-                            margin-bottom: 10px;
+                        /* Zajistit, že se text nezalomí */
+                        #userCartDropdown2 a {
+                            white-space: nowrap;
+                            display: flex;
+                            align-items: center;
+                        }
+                        
+                        /* Styling pro různé typy ikon */
+                        #userCartDropdown2 a i + .mobile-cart-value,
+                        #userCartDropdown2 a svg + .mobile-cart-value,
+                        #userCartDropdown2 a .icon + .mobile-cart-value {
+                            margin-left: 8px;
                         }
                     }
                     
