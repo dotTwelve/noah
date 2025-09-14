@@ -298,22 +298,17 @@
                 }
             });
             
-            // Sledovat celou navigaci a košík oblasti
+            // Sledovat pouze desktop košík pro změny ceny
             const targets = [
                 document.getElementById('snippet--basketTotalAjax'),
-                document.getElementById('userCartDropdown'),
-                document.getElementById('snippet--basketNavbarAjax'),
-                document.getElementById('userCartDropdown2'),
-                document.querySelector('.navbar-nav'),
-                document.querySelector('.navbar')
+                document.getElementById('userCartDropdown')
             ].filter(Boolean);
             
             targets.forEach(target => {
                 observer.observe(target, {
                     childList: true,
                     subtree: true,
-                    attributes: false,
-                    characterData: false
+                    characterData: true
                 });
             });
             
