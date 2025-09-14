@@ -339,33 +339,11 @@
                         margin: 0 5px;
                         font-variant-numeric: tabular-nums;
                         white-space: nowrap;
-                        transition: transform 0.2s ease, color 0.2s ease;
-                    }
-                    
-                    .mobile-price-display.price-updating {
-                        color: #007bff;
-                        transform: scale(1.1);
-                        font-weight: 600;
-                    }
-                    
-                    .mobile-price-display.price-updated {
-                        animation: successFlash 0.5s ease;
                     }
                     
                     /* Skrýt v dropdown menu */
                     .dropdown-menu .mobile-price-display {
                         display: none !important;
-                    }
-                    
-                    @keyframes successFlash {
-                        0%, 100% { 
-                            background: transparent; 
-                        }
-                        50% { 
-                            background: rgba(40, 167, 69, 0.15);
-                            padding: 2px 5px;
-                            border-radius: 4px;
-                        }
                     }
                 }
                 
