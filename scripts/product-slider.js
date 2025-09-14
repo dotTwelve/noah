@@ -133,7 +133,7 @@
             // Inicializuj Swiper
             const swiperInstance = new Swiper('#' + sliderId, {
                 slidesPerView: 1,
-                spaceBetween: 20,
+                spaceBetween: 20, // Zachová původní mezery mezi produkty
                 watchOverflow: true,
                 centerInsufficientSlides: true,
                 loop: this.config.loop,
