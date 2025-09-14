@@ -92,33 +92,48 @@
                 return;
             }
             
-            // Najít odkaz
-            const targetLink = document.querySelector(this.config.targetSelector);
-            if (!targetLink) return;
+            // Najít pouze první (hlavní) odkaz - mimo dropdown menu
+            // Hledáme odkaz, který NENÍ uvnitř .dropdown-menu
+            const targetLink = document.querySelector('#userCartDropdown2 > a:not(.dropdown-menu #userCartDropdown2 > a)');
+            
+            // Pokud to nefunguje, vzít první nalezený odkaz, který je viditelný
+            let finalTarget = targetLink;
+            if (!finalTarget) {
+                const allLinks = document.querySelectorAll(this.config.targetSelector);
+                // Vzít první odkaz, který není v dropdown menu
+                for (let link of allLinks) {
+                    if (!link.closest('.dropdown-menu')) {
+                        finalTarget = link;
+                        break;
+                    }
+                }
+            }
+            
+            if (!finalTarget) return;
             
             const cartValue = this.getCartValue();
             const currencySymbol = this.getCurrencySymbol();
             
-            // Najít nebo vytvořit span
-            let valueSpan = targetLink.querySelector('.' + this.config.elementClass);
+            // Najít nebo vytvořit span POUZE v tomto konkrétním odkazu
+            let valueSpan = finalTarget.querySelector('.' + this.config.elementClass);
             
             if (!valueSpan) {
                 valueSpan = document.createElement('span');
                 valueSpan.className = this.config.elementClass;
                 
                 // Najít ikonu (SVG nebo i element)
-                const icon = targetLink.querySelector('svg, i, .ic');
+                const icon = finalTarget.querySelector('svg, i, .ic');
                 
                 if (icon && icon.nextSibling) {
                     // Vložit za ikonu
                     icon.parentNode.insertBefore(valueSpan, icon.nextSibling);
                 } else {
                     // Vložit před badge nebo na konec
-                    const badge = targetLink.querySelector('.badge');
+                    const badge = finalTarget.querySelector('.badge');
                     if (badge) {
-                        targetLink.insertBefore(valueSpan, badge);
+                        finalTarget.insertBefore(valueSpan, badge);
                     } else {
-                        targetLink.appendChild(valueSpan);
+                        finalTarget.appendChild(valueSpan);
                     }
                 }
             }
