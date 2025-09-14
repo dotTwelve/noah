@@ -184,6 +184,9 @@
                 priceEl.textContent = this.currentPriceText;
             }
             
+            // Nastavit počáteční data-last-value
+            priceEl.setAttribute('data-last-value', this.lastPrice || '0');
+            
             // Najít ikonu nebo badge
             const icon = link.querySelector('svg, i.fa');
             const badge = link.querySelector('.badge');
