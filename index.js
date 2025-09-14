@@ -2,7 +2,7 @@
  * Product Slider for NOAH Natural Products
  * Převádí grid produktů na interaktivní slider pomocí Swiper.js
  * 
- * @version 2.1.0
+ * @version 2.2.0
  * @requires jQuery 3.4.1+
  * @requires Swiper 11+
  */
@@ -143,23 +143,22 @@
                         prevEl: '#' + sliderId + ' .swiper-button-prev',
                     },
                     
-                    // Pagination - custom pro skupiny
+                    // Pagination - použijeme bullets místo custom
                     pagination: {
                         el: $container.find('.swiper-pagination')[0],
                         clickable: true,
-                        type: 'custom',
-                        renderCustom: function (swiper, current, total) {
-                            const currentGroup = Math.floor((current - 1) / swiper.params.slidesPerGroup) + 1;
-                            const totalGroups = Math.ceil(swiper.slides.length / swiper.params.slidesPerGroup);
+                        type: 'bullets',
+                        dynamicBullets: false,
+                        renderBullet: function (index, className) {
+                            // Vypočítej číslo skupiny
+                            const groupNumber = Math.floor(index / this.params.slidesPerGroup) + 1;
+                            const isFirstInGroup = index % this.params.slidesPerGroup === 0;
                             
-                            let bullets = '';
-                            for (let i = 1; i <= totalGroups; i++) {
-                                const slideIndex = (i - 1) * swiper.params.slidesPerGroup;
-                                const activeClass = (i === currentGroup) ? ' swiper-pagination-bullet-active' : '';
-                                bullets += '<span class="swiper-pagination-bullet' + activeClass + 
-                                          '" data-slide-to="' + slideIndex + '"></span>';
+                            // Renderuj pouze první slide z každé skupiny
+                            if (isFirstInGroup) {
+                                return '<span class="' + className + '" data-slide-index="' + index + '"></span>';
                             }
-                            return bullets;
+                            return '';
                         }
                     },
                     
@@ -195,25 +194,33 @@
                                 this.params.slidesPerGroup = this.params.slidesPerView;
                                 this.update();
                             }
+                            
+                            // Oprav pagination po inicializaci
+                            self.updatePagination(this);
                         },
+                        
+                        slideChange: function() {
+                            // Aktualizuj aktivní bullet při změně slidu
+                            self.updatePaginationActive(this);
+                        },
+                        
                         breakpoint: function() {
                             // Ujisti se, že slidesPerGroup = slidesPerView při změně breakpointu
                             if (this.params.slidesPerGroup !== this.params.slidesPerView) {
                                 this.params.slidesPerGroup = this.params.slidesPerView;
                                 this.update();
                             }
+                            
+                            // Aktualizuj pagination po změně breakpointu
+                            setTimeout(() => {
+                                self.updatePagination(this);
+                            }, 100);
                         }
                     }
                 };
                 
                 // Inicializuj Swiper
                 const swiperInstance = new Swiper('#' + sliderId, swiperConfig);
-                
-                // Přidej click event pro custom pagination
-                $container.find('.swiper-pagination').on('click', '.swiper-pagination-bullet', function() {
-                    const slideToIndex = parseInt($(this).attr('data-slide-to'));
-                    swiperInstance.slideTo(slideToIndex);
-                });
                 
                 // Ulož instanci
                 self.instances.push({
@@ -224,6 +231,47 @@
                 });
                 
             }, 50);
+        },
+
+        /**
+         * Aktualizace pagination po inicializaci nebo změně breakpointu
+         */
+        updatePagination: function(swiper) {
+            const totalGroups = Math.ceil(swiper.slides.length / swiper.params.slidesPerGroup);
+            const $pagination = $(swiper.pagination.el);
+            
+            // Vyčisti existující bullets
+            $pagination.empty();
+            
+            // Vytvoř nové bullets pro každou skupinu
+            for (let i = 0; i < totalGroups; i++) {
+                const slideIndex = i * swiper.params.slidesPerGroup;
+                const $bullet = $('<span class="swiper-pagination-bullet" data-slide-index="' + slideIndex + '"></span>');
+                
+                // Přidej click handler
+                $bullet.on('click', function() {
+                    swiper.slideTo(slideIndex);
+                });
+                
+                $pagination.append($bullet);
+            }
+            
+            // Nastav aktivní bullet
+            this.updatePaginationActive(swiper);
+        },
+
+        /**
+         * Aktualizace aktivního bullet
+         */
+        updatePaginationActive: function(swiper) {
+            const currentGroup = Math.floor(swiper.activeIndex / swiper.params.slidesPerGroup);
+            const $pagination = $(swiper.pagination.el);
+            
+            // Odstraň aktivní třídu ze všech bullets
+            $pagination.find('.swiper-pagination-bullet').removeClass('swiper-pagination-bullet-active');
+            
+            // Přidej aktivní třídu správnému bullet
+            $pagination.find('.swiper-pagination-bullet').eq(currentGroup).addClass('swiper-pagination-bullet-active');
         },
 
         /**
@@ -332,6 +380,7 @@
                         text-align: center;
                         margin-top: 20px;
                         line-height: 1;
+                        z-index: 10;
                     }
                     
                     .swiper-pagination-bullet {
@@ -344,6 +393,12 @@
                         margin: 0 4px;
                         cursor: pointer;
                         transition: all 0.3s;
+                        border: none;
+                        padding: 0;
+                    }
+                    
+                    .swiper-pagination-bullet:hover {
+                        background: #999;
                     }
                     
                     .swiper-pagination-bullet-active {
@@ -407,6 +462,23 @@
             $('#product-slider-styles').remove();
             $('.slider-active').removeClass('slider-active');
             $('.swiper-initialized').removeClass('swiper-initialized');
+        },
+
+        /**
+         * Debug funkce pro testování
+         */
+        debug: function() {
+            console.log('ProductSlider Debug Info:');
+            console.log('Instances:', this.instances);
+            this.instances.forEach((instance, index) => {
+                console.log(`Slider ${index}:`, {
+                    id: instance.id,
+                    totalItems: instance.totalItems,
+                    activeIndex: instance.swiper.activeIndex,
+                    slidesPerGroup: instance.swiper.params.slidesPerGroup,
+                    slidesPerView: instance.swiper.params.slidesPerView
+                });
+            });
         }
     };
 
