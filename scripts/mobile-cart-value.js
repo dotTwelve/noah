@@ -1,9 +1,8 @@
-
 /**
  * Mobile Cart Value Display for NOAH Natural Products
- * Zobrazuje celkovou hodnotu košíku na mobilních zařízeních
+ * Zobrazuje celkovou hodnotu košíku na mobilních a tabletech
  * 
- * @version 1.2.0 - Dynamická měna z upgates.currency
+ * @version 1.3.0 - Rozšířeno do 1200px, sledování dynamických změn
  * @requires upgates (NOAH cart system)
  */
 
@@ -13,8 +12,9 @@
     const MobileCartValue = {
         // Konfigurace
         config: {
-            maxWidth: 768,
-            targetSelector: '#userCartDropdown2',
+            maxWidth: 1200, // Změněno z 768 na 1200
+            targetSelector: '#userCartDropdown2 > a', // Přímý odkaz v dropdown
+            amountSelector: '.uc-amount',
             elementClass: 'mobile-cart-value',
             currencyMap: {
                 'CZK': 'Kč',
@@ -23,6 +23,8 @@
                 'GBP': '£'
             }
         },
+        
+        observer: null,
         
         /**
          * Inicializace
@@ -34,7 +36,10 @@
             // První zobrazení
             this.updateDisplay();
             
-            // Nastavit event listenery pro upgates systém
+            // Nastavit observery pro dynamické změny
+            this.setupObservers();
+            
+            // Nastavit event listenery
             this.setupEventListeners();
             
             // Reagovat na resize
@@ -56,19 +61,20 @@
             if (typeof upgates !== 'undefined' && upgates.currency) {
                 return this.config.currencyMap[upgates.currency] || upgates.currency;
             }
-            return 'Kč'; // Výchozí měna
+            return 'Kč';
         },
         
         /**
-         * Získání hodnoty košíku
+         * Získání hodnoty košíku z DOM
          */
         getCartValue: function() {
-            // Získat hodnotu z DOM elementu .uc-amount (vždy aktuální)
-            const amountEl = document.querySelector('.uc-amount');
+            // Najít .uc-amount element
+            const amountEl = document.querySelector(this.config.amountSelector);
+            
             if (amountEl) {
                 const text = amountEl.textContent || amountEl.innerText;
-                // Odstranit všechny nečíselné znaky kromě čárky a tečky
-                const cleanedText = text.replace(/[^\d,.-]/g, '').replace(',', '.');
+                // Odstranit mezery, &nbsp; a další znaky
+                const cleanedText = text.replace(/\s/g, '').replace(/&nbsp;/g, '').replace(/[^\d,.-]/g, '').replace(',', '.');
                 const value = parseFloat(cleanedText);
                 return isNaN(value) ? 0 : value;
             }
@@ -80,14 +86,14 @@
          * Aktualizace zobrazení
          */
         updateDisplay: function() {
-            // Pouze na mobilu
+            // Pouze do 1200px
             if (window.innerWidth > this.config.maxWidth) {
                 this.removeDisplay();
                 return;
             }
             
             // Najít odkaz
-            const targetLink = document.querySelector(this.config.targetSelector + ' a');
+            const targetLink = document.querySelector(this.config.targetSelector);
             if (!targetLink) return;
             
             const cartValue = this.getCartValue();
@@ -100,16 +106,24 @@
                 valueSpan = document.createElement('span');
                 valueSpan.className = this.config.elementClass;
                 
-                // Vložit za ikonu nebo na konec
-                const icon = targetLink.querySelector('i, svg, .icon');
+                // Najít ikonu (SVG nebo i element)
+                const icon = targetLink.querySelector('svg, i, .ic');
+                
                 if (icon && icon.nextSibling) {
+                    // Vložit za ikonu
                     icon.parentNode.insertBefore(valueSpan, icon.nextSibling);
                 } else {
-                    targetLink.appendChild(valueSpan);
+                    // Vložit před badge nebo na konec
+                    const badge = targetLink.querySelector('.badge');
+                    if (badge) {
+                        targetLink.insertBefore(valueSpan, badge);
+                    } else {
+                        targetLink.appendChild(valueSpan);
+                    }
                 }
             }
             
-            // Zobrazit/skrýt hodnotu BEZ ZÁVOREK
+            // Zobrazit/skrýt hodnotu
             if (cartValue > 0) {
                 valueSpan.textContent = ` ${this.formatPrice(cartValue)} ${currencySymbol}`;
                 valueSpan.style.display = 'inline';
@@ -126,12 +140,71 @@
         },
         
         /**
+         * Nastavení MutationObserver pro sledování AJAX změn
+         */
+        setupObservers: function() {
+            const self = this;
+            
+            // Observer pro sledování změn
+            this.observer = new MutationObserver(function(mutations) {
+                let shouldUpdate = false;
+                
+                mutations.forEach(mutation => {
+                    // Pokud se změnil obsah snippet--basketFixedAjax
+                    if (mutation.target.id === 'snippet--basketFixedAjax') {
+                        shouldUpdate = true;
+                    }
+                    
+                    // Nebo pokud byly přidány/změněny potomci tohoto snippetu
+                    mutation.addedNodes.forEach(node => {
+                        if (node.nodeType === 1) {
+                            if (node.id === 'userCartDropdown2' || 
+                                node.querySelector && (node.querySelector('#userCartDropdown2') || node.querySelector('.uc-amount'))) {
+                                shouldUpdate = true;
+                            }
+                        }
+                    });
+                    
+                    // Kontrola změn textu v .uc-amount
+                    if (mutation.type === 'characterData' || mutation.type === 'childList') {
+                        const target = mutation.target;
+                        if (target.nodeType === 1 && target.classList && target.classList.contains('uc-amount')) {
+                            shouldUpdate = true;
+                        }
+                    }
+                });
+                
+                if (shouldUpdate) {
+                    // Krátké zpoždění pro dokončení DOM změn
+                    setTimeout(() => self.updateDisplay(), 100);
+                }
+            });
+            
+            // Sledovat specificky snippet--basketFixedAjax a celý body
+            const basketSnippet = document.getElementById('snippet--basketFixedAjax');
+            if (basketSnippet) {
+                this.observer.observe(basketSnippet, {
+                    childList: true,
+                    subtree: true,
+                    characterData: true
+                });
+            }
+            
+            // Také sledovat body pro případné další změny
+            this.observer.observe(document.body, {
+                childList: true,
+                subtree: true,
+                characterData: true
+            });
+        },
+        
+        /**
          * Nastavení event listenerů
          */
         setupEventListeners: function() {
             const self = this;
             
-            // 1. UPGATES EVENTY - hlavní způsob aktualizace
+            // UPGATES eventy
             if (typeof upgates !== 'undefined' && upgates.on) {
                 upgates.on('cart', () => self.updateDisplay());
                 upgates.on('cartUpdate', () => self.updateDisplay());
@@ -139,32 +212,29 @@
                 upgates.on('removeFromCart', () => self.updateDisplay());
             }
             
-            // 2. JQUERY EVENTY - pokud používáte jQuery pro košík
+            // jQuery eventy
             if (typeof jQuery !== 'undefined') {
                 jQuery(document).on('cart.updated', () => self.updateDisplay());
                 jQuery(document).on('added_to_cart', () => self.updateDisplay());
                 jQuery(document).on('removed_from_cart', () => self.updateDisplay());
             }
             
-            // 3. INTERCEPTOVÁNÍ AJAX - zachytí všechny požadavky na košík
+            // Interceptování AJAX
             const originalFetch = window.fetch;
             window.fetch = function(...args) {
                 return originalFetch.apply(this, args).then(response => {
                     const url = args[0].toString();
-                    if (url.includes('cart') || url.includes('kosik')) {
+                    if (url.includes('cart') || url.includes('kosik') || url.includes('basket')) {
                         setTimeout(() => self.updateDisplay(), 100);
                     }
                     return response;
                 });
             };
             
-            // 4. CUSTOM EVENTY - můžete volat odkudkoliv
-            document.addEventListener('cartValueUpdate', () => self.updateDisplay());
-            
-            // 5. CLICK EVENTY - aktualizace při kliknutí na tlačítka košíku
+            // Click eventy na tlačítka košíku
             document.addEventListener('click', function(e) {
                 const target = e.target;
-                if (target.matches('.add-to-cart, .remove-from-cart, [data-action*="cart"]')) {
+                if (target.matches('.add-to-cart, .remove-from-cart, [data-action*="cart"], .btn-to-cart')) {
                     setTimeout(() => self.updateDisplay(), 500);
                 }
             });
@@ -178,22 +248,28 @@
             
             const styles = `
                 <style id="mobile-cart-value-styles">
-                    @media (max-width: 768px) {
+                    @media (max-width: 1200px) {
                         .mobile-cart-value {
                             display: inline;
                             font-weight: 600;
                             color: #27ae60;
                             margin-left: 8px;
+                            margin-right: 8px;
                         }
                         
-                        #userCartDropdown2 a {
+                        #userCartDropdown2 > a {
                             white-space: nowrap;
                             display: flex;
                             align-items: center;
                         }
+                        
+                        /* Skrýt při rozbalení dropdown menu */
+                        #userCartDropdown2.show .mobile-cart-value {
+                            display: none !important;
+                        }
                     }
                     
-                    @media (min-width: 769px) {
+                    @media (min-width: 1201px) {
                         .mobile-cart-value {
                             display: none !important;
                         }
@@ -212,12 +288,17 @@
         MobileCartValue.init();
     }
     
-    // Export + pomocné funkce
+    // Export
     window.MobileCartValue = {
         update: () => MobileCartValue.updateDisplay(),
         getValue: () => MobileCartValue.getCartValue(),
         getCurrency: () => MobileCartValue.getCurrencySymbol(),
-        destroy: () => MobileCartValue.removeDisplay()
+        destroy: () => {
+            if (MobileCartValue.observer) {
+                MobileCartValue.observer.disconnect();
+            }
+            MobileCartValue.removeDisplay();
+        }
     };
     
 })();
