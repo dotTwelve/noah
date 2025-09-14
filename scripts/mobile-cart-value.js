@@ -1,8 +1,8 @@
 /**
- * Mobile Cart Value Display for NOAH Natural Products - Simplified Version
+ * Mobile Cart Value Display for NOAH Natural Products
  * Zobrazuje celkovou hodnotu košíku na mobilních zařízeních
  * 
- * @version 1.1.0 - Zjednodušená verze s event listenery
+ * @version 1.2.0 - Dynamická měna z upgates.currency
  * @requires upgates (NOAH cart system)
  */
 
@@ -14,8 +14,13 @@
         config: {
             maxWidth: 768,
             targetSelector: '#userCartDropdown2',
-            currencySymbol: 'Kč',
-            elementClass: 'mobile-cart-value'
+            elementClass: 'mobile-cart-value',
+            currencyMap: {
+                'CZK': 'Kč',
+                'EUR': '€',
+                'USD': '$',
+                'GBP': '£'
+            }
         },
         
         /**
@@ -40,6 +45,17 @@
          */
         formatPrice: function(price) {
             return price.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+        },
+        
+        /**
+         * Získání symbolu měny
+         */
+        getCurrencySymbol: function() {
+            // Získat měnu z upgates
+            if (typeof upgates !== 'undefined' && upgates.currency) {
+                return this.config.currencyMap[upgates.currency] || upgates.currency;
+            }
+            return 'Kč'; // Výchozí měna
         },
         
         /**
@@ -82,6 +98,7 @@
             if (!targetLink) return;
             
             const cartValue = this.getCartValue();
+            const currencySymbol = this.getCurrencySymbol();
             
             // Najít nebo vytvořit span
             let valueSpan = targetLink.querySelector('.' + this.config.elementClass);
@@ -99,9 +116,9 @@
                 }
             }
             
-            // Zobrazit/skrýt hodnotu
+            // Zobrazit/skrýt hodnotu BEZ ZÁVOREK
             if (cartValue > 0) {
-                valueSpan.textContent = ` (${this.formatPrice(cartValue)} ${this.config.currencySymbol})`;
+                valueSpan.textContent = ` ${this.formatPrice(cartValue)} ${currencySymbol}`;
                 valueSpan.style.display = 'inline';
             } else {
                 valueSpan.style.display = 'none';
@@ -206,6 +223,7 @@
     window.MobileCartValue = {
         update: () => MobileCartValue.updateDisplay(),
         getValue: () => MobileCartValue.getCartValue(),
+        getCurrency: () => MobileCartValue.getCurrencySymbol(),
         destroy: () => MobileCartValue.removeDisplay()
     };
     
