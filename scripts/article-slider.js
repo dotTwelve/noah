@@ -247,17 +247,17 @@
                         0: {
                             slidesPerView: 1,
                             slidesPerGroup: 1,
-                            spaceBetween: 20
+                            spaceBetween: 16
                         },
                         768: {
                             slidesPerView: 2,
                             slidesPerGroup: 2,
-                            spaceBetween: 30
+                            spaceBetween: 32
                         },
                         1200: {
-                            slidesPerView: 3,
-                            slidesPerGroup: 3,
-                            spaceBetween: 30
+                            slidesPerView: 4,
+                            slidesPerGroup: 4,
+                            spaceBetween: 32
                         }
                     },
                     
