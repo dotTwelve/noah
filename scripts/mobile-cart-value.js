@@ -207,21 +207,22 @@
                     .mobile-price {
                         white-space: nowrap;
                         display: inline !important;
-                        transition: opacity 0.15s ease, transform 0.3s ease;
+                        transition: color 0.3s ease;
+                        font-variant-numeric: tabular-nums;
+                        letter-spacing: 0.5px;
                     }
                     
                     .mobile-price.price-initialized {
                         animation: fadeIn 0.3s ease;
                     }
                     
-                    .mobile-price.price-changed {
-                        animation: pulse 0.6s ease;
-                        color: #28a745;
-                        font-weight: bold;
+                    .mobile-price.price-updating {
+                        color: #007bff;
+                        font-weight: 600;
                     }
                     
-                    .mobile-price.price-updating {
-                        transform: scale(0.95);
+                    .mobile-price.price-changed {
+                        animation: highlight 0.3s ease;
                     }
                     
                     /* Skrýt v rozbalovacím menu */
@@ -240,12 +241,14 @@
                         }
                     }
                     
-                    @keyframes pulse {
-                        0%, 100% {
-                            transform: scale(1);
+                    @keyframes highlight {
+                        0% {
+                            background: linear-gradient(90deg, transparent, rgba(40, 167, 69, 0.1), transparent);
+                            background-size: 200% 100%;
+                            background-position: -100% 0;
                         }
-                        50% {
-                            transform: scale(1.05);
+                        100% {
+                            background-position: 100% 0;
                         }
                     }
                 }
