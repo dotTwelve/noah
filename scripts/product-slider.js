@@ -13,7 +13,7 @@
     const ProductSlider = {
         // Konfigurace
         config: {
-            containerSelector: '.products-cart-recommend',
+            containerSelector: '.products-cart-recommend, .bic-prcs',
             gridSelector: '.card-group',
             itemSelector: '.card-item',
             swiperCDN: 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js',
