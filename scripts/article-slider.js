@@ -296,7 +296,7 @@
                     const $discoverBtn = $('<a>')
                         .attr('href', articleHref)
                         .attr('class', 'btn fg sh-md ou bg-se fs-lg-3 fs-1 ca-c')
-                        .text('Číst');
+                        .text('Celý článek');
                     
                     $buttonWrapper.append($discoverBtn);
                     $textWrapper.append($buttonWrapper);
@@ -609,13 +609,9 @@
                     }
                     
                     .article-slider-active .article-button-wrapper {
-                        display: flex !important;
-                        justify-content: center !important;
-                        align-items: center !important;
                         margin-top: auto; /* Přisadit tlačítko ke spodní části */
                         padding-top: 15px;
-                        width: 100% !important;
-                        text-align: center !important;
+                        width: 100%;
                     }
                     
                     /* Navigační šipky */
