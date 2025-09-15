@@ -642,11 +642,13 @@
                     }
                     
                     [id^="article-slider-"] .carousel-prev {
-                        left: 0;
+                        left: -20px;
+                        transform: translateY(-50%) translateX(50%);
                     }
                     
                     [id^="article-slider-"] .carousel-next {
-                        right: 0;
+                        right: -20px;
+                        transform: translateY(-50%) translateX(50%);
                     }
                     
                     /* Disabled stav pro navigační tlačítka */
