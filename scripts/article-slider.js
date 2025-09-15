@@ -407,6 +407,9 @@
                                 self.updateNavigationVisibility(this);
                             }
                             
+                            // Nastav pozici šipek podle výšky obrázků
+                            self.updateArrowPosition(this);
+                            
                             console.log('ArticleSlider: Slider ' + index + ' inicializován');
                             console.log('- Celkem článků: ' + totalItems);
                             console.log('- Zobrazeno článků: ' + this.params.slidesPerView);
@@ -450,6 +453,9 @@
                                 this.allowSlidePrev = true;
                                 self.updateNavigationVisibility(this);
                             }
+                            
+                            // Aktualizuj pozici šipek při resize
+                            self.updateArrowPosition(this);
                         },
                         
                         breakpoint: function(swiper) {
@@ -468,6 +474,70 @@
             }, 100);
         },
 
+        updateArrowPosition: function(swiper) {
+            // Najdi všechny obrázky ve slideru
+            const $images = $(swiper.el).find('article figure img');
+            
+            if ($images.length === 0) {
+                // Pokud nejsou obrázky, nech výchozí pozici (50%)
+                return;
+            }
+            
+            // Počkej až se obrázky načtou
+            let loadedImages = 0;
+            let totalHeight = 0;
+            
+            const calculatePosition = function() {
+                // Vypočítej průměrnou výšku obrázků
+                $images.each(function() {
+                    const imgHeight = $(this).height();
+                    if (imgHeight > 0) {
+                        totalHeight += imgHeight;
+                    }
+                });
+                
+                const avgImageHeight = totalHeight / $images.length;
+                
+                if (avgImageHeight > 0) {
+                    // Nastav pozici šipek na střed obrázků (polovina průměrné výšky)
+                    const arrowTop = avgImageHeight / 2;
+                    
+                    $(swiper.navigation.prevEl).css({
+                        'top': arrowTop + 'px',
+                        'transform': 'translateY(-50%)'
+                    });
+                    
+                    $(swiper.navigation.nextEl).css({
+                        'top': arrowTop + 'px',
+                        'transform': 'translateY(-50%)'
+                    });
+                }
+            };
+            
+            // Zkontroluj, jestli jsou obrázky už načtené
+            $images.each(function() {
+                if (this.complete && this.naturalHeight !== 0) {
+                    loadedImages++;
+                }
+            });
+            
+            if (loadedImages === $images.length) {
+                // Všechny obrázky jsou načtené
+                calculatePosition();
+            } else {
+                // Počkej na načtení obrázků
+                $images.on('load', function() {
+                    loadedImages++;
+                    if (loadedImages === $images.length) {
+                        calculatePosition();
+                    }
+                });
+                
+                // Fallback pro případ, že některé obrázky se nenačtou
+                setTimeout(calculatePosition, 1000);
+            }
+        },
+        
         updateNavigationVisibility: function(swiper) {
             // Při loop mode jsou navigační prvky vždy viditelné pokud je víc článků než se vejde
             const totalSlides = swiper.slides.length - (swiper.loopedSlides * 2); // Odečti duplikované slidy
@@ -594,11 +664,6 @@
                         display: block;
                     }
                     
-                    /* Margin pro h2 */
-                    .article-slider-active article h2 {
-                        margin: 0 16px;
-                    }
-                    
                     .article-slider-active article .gapy-3 {
                         flex: 1;
                         display: flex;
@@ -613,7 +678,6 @@
                         display: -webkit-box;
                         -webkit-line-clamp: 3;
                         -webkit-box-orient: vertical;
-                        margin: 0 16px;
                     }
                     
                     .article-slider-active .article-button-wrapper {
