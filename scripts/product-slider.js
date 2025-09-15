@@ -507,12 +507,6 @@
                             right: -15px;
                         }
                     }
-                    
-                    @media (max-width: 1204px) {
-                        .product-slider-wrapper .carousel-nav {
-                            opacity: 1;
-                        }
-                    }
                 </style>
             `;
             
