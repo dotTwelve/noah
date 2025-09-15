@@ -539,13 +539,6 @@
                     /* CENTROVÁNÍ TLAČÍTKA VŠECHNY ČLÁNKY */
                     .article-slider-active + .all-articles-wrapper,
                     .all-articles-wrapper {
-                        display: flex !important;
-                        justify-content: center !important;
-                        align-items: center !important;
-                        margin-top: 30px;
-                        padding-top: 20px;
-                        width: 100% !important;
-                        text-align: center !important;
                     }
                     
                     .all-articles-wrapper .btn-to-cart {
