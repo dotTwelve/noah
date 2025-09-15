@@ -493,10 +493,14 @@
                             width: 6px;
                             height: 6px;
                             margin: 0 3px;
-                        }
-                        
+                        }                        
                         .swiper-pagination-bullet-active {
                             width: 20px;
+                        }
+                    }
+                    @media (max-width: 1200px) {
+                        .carousel-nav {
+                            opacity: 1;
                         }
                     }
                 </style>
