@@ -2,7 +2,7 @@
  * Product Slider for NOAH Natural Products
  * Převádí grid produktů na interaktivní slider pomocí Swiper.js
  * 
- * @version 3.3.0 - Slider se inicializuje pouze když je potřeba
+ * @version 3.4.0 - Vyrovnání výšky produktů ve slideru
  * @requires jQuery 3.4.1+
  * @requires Swiper 11+
  */
@@ -240,6 +240,9 @@
                     loop: true,
                     loopFillGroupWithBlank: false, // Nevyplňovat prázdnými slidy
                     
+                    // Automatická výška
+                    autoHeight: false, // DŮLEŽITÉ: false zajistí stejnou výšku všech slidů
+                    
                     // Obecné nastavení
                     watchOverflow: false, // Musí být false pro loop
                     threshold: 10,
@@ -417,9 +420,9 @@
                         visibility: visible !important;
                     }
                     
-                    /* Zachovat původní styly card-item */
+                    /* Zachovat původní styly card-item a zajistit správnou výšku */
                     .slider-active .card-item {
-                        height: 100%;
+                        height: auto; /* Automatická výška pro správné vyrovnání */
                         display: flex !important;
                     }
                     
