@@ -2,7 +2,7 @@
  * Product Slider for NOAH Natural Products
  * Převádí grid produktů na interaktivní slider pomocí Swiper.js
  * 
- * @version 3.2.0 - Opraveny breakpointy podle Bootstrap grid
+ * @version 3.3.0 - Slider se inicializuje pouze když je potřeba
  * @requires jQuery 3.4.1+
  * @requires Swiper 11+
  */
@@ -70,6 +70,68 @@
 
                 self.createSlider($container, $grid, index);
             });
+            
+            // Přidej listener pro změnu velikosti okna pro re-inicializaci
+            $(window).on('resize.productSlider', self.debounce(function() {
+                self.handleResize();
+            }, 250));
+        },
+        
+        handleResize: function() {
+            const self = this;
+            
+            // Projdi všechny kontejnery znovu
+            $(this.config.containerSelector).each(function(index) {
+                const $container = $(this);
+                const $grid = $container.find(self.config.gridSelector);
+                const totalItems = $grid.find(self.config.itemSelector).length;
+                
+                // Zjisti kolik produktů se vejde
+                const windowWidth = window.innerWidth;
+                let expectedSlidesPerView = 2;
+                
+                if (windowWidth >= 1502) {
+                    expectedSlidesPerView = 5;
+                } else if (windowWidth >= 1204) {
+                    expectedSlidesPerView = 4;
+                } else if (windowWidth >= 992) {
+                    expectedSlidesPerView = 3;
+                }
+                
+                const hasSlider = $grid.hasClass('swiper-initialized');
+                const needsSlider = totalItems > expectedSlidesPerView;
+                
+                // Pokud nemá slider a potřebuje ho, vytvoř ho
+                if (!hasSlider && needsSlider) {
+                    // Nejdřív odstraň případné zbytky
+                    if ($grid.parent().hasClass('product-slider-wrapper')) {
+                        $grid.unwrap();
+                    }
+                    $grid.find('.swiper-wrapper').children().unwrap();
+                    $grid.find('.swiper-slide').removeClass('swiper-slide');
+                    $container.find('.swiper-pagination').remove();
+                    $container.find('.carousel-nav').remove();
+                    $grid.removeClass('swiper swiper-initialized carousel');
+                    $container.removeClass('slider-active');
+                    
+                    // Vytvoř nový slider
+                    self.createSlider($container, $grid, index);
+                }
+            });
+        },
+        
+        debounce: function(func, wait) {
+            let timeout;
+            return function executedFunction() {
+                const context = this;
+                const args = arguments;
+                const later = function() {
+                    timeout = null;
+                    func.apply(context, args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
         },
 
         createCustomNavigation: function(sliderId) {
@@ -111,6 +173,28 @@
             const totalItems = $items.length;
             
             if (totalItems === 0) {
+                return;
+            }
+            
+            // Zjisti kolik produktů se vejde podle aktuální šířky okna
+            const windowWidth = window.innerWidth;
+            let expectedSlidesPerView = 2; // výchozí pro xs
+            
+            if (windowWidth >= 1502) {
+                expectedSlidesPerView = 5; // xxl
+            } else if (windowWidth >= 1204) {
+                expectedSlidesPerView = 4; // xl
+            } else if (windowWidth >= 992) {
+                expectedSlidesPerView = 3; // lg
+            } else if (windowWidth >= 768) {
+                expectedSlidesPerView = 2; // md
+            } else if (windowWidth >= 576) {
+                expectedSlidesPerView = 2; // sm
+            }
+            
+            // Pokud se všechny produkty vejdou, neinicializuj slider
+            if (totalItems <= expectedSlidesPerView) {
+                console.log('ProductSlider: Slider ' + index + ' přeskočen - všech ' + totalItems + ' produktů se vejde na obrazovku');
                 return;
             }
             
@@ -161,6 +245,7 @@
                     threshold: 10,
                     speed: 600,
                     grabCursor: true,
+                    allowTouchMove: true, // Povolit swipe gesta
                     
                     // Navigace
                     navigation: {
@@ -217,7 +302,37 @@
                         },
                         
                         resize: function() {
-                            self.updateNavigationVisibility(this);
+                            // Při změně velikosti okna zkontroluj, jestli je slider stále potřeba
+                            const windowWidth = window.innerWidth;
+                            let expectedSlidesPerView = 2;
+                            
+                            if (windowWidth >= 1502) {
+                                expectedSlidesPerView = 5;
+                            } else if (windowWidth >= 1204) {
+                                expectedSlidesPerView = 4;
+                            } else if (windowWidth >= 992) {
+                                expectedSlidesPerView = 3;
+                            } else if (windowWidth >= 768) {
+                                expectedSlidesPerView = 2;
+                            } else if (windowWidth >= 576) {
+                                expectedSlidesPerView = 2;
+                            }
+                            
+                            // Pokud se teď všechny produkty vejdou, možná by bylo dobré slider zrušit
+                            // ale pro jednoduchost jen skryjeme navigaci
+                            if (totalItems <= expectedSlidesPerView) {
+                                $(this.navigation.prevEl).hide();
+                                $(this.navigation.nextEl).hide();
+                                $(this.pagination.el).hide();
+                                this.allowTouchMove = false;
+                                this.allowSlideNext = false;
+                                this.allowSlidePrev = false;
+                            } else {
+                                this.allowTouchMove = true;
+                                this.allowSlideNext = true;
+                                this.allowSlidePrev = true;
+                                self.updateNavigationVisibility(this);
+                            }
                         },
                         
                         breakpoint: function(swiper) {
@@ -402,6 +517,9 @@
         },
 
         destroy: function() {
+            // Odstraň event listener
+            $(window).off('resize.productSlider');
+            
             this.instances.forEach(instance => {
                 if (instance.swiper) {
                     instance.swiper.destroy(true, true);
