@@ -423,6 +423,13 @@
                         },
                         
                         resize: function() {
+                            // Nastav flag, že probíhá resize
+                            this.isResizing = true;
+                            
+                            // Resetuj data flag pro přepočet pozice
+                            $(this.navigation.prevEl).removeData('position-set');
+                            $(this.navigation.nextEl).removeData('position-set');
+                            
                             // Při změně velikosti okna zkontroluj, jestli je slider stále potřeba
                             const windowWidth = window.innerWidth;
                             let expectedSlidesPerView = 1;
@@ -456,6 +463,9 @@
                             
                             // Aktualizuj pozici šipek při resize
                             self.updateArrowPosition(this);
+                            
+                            // Resetuj flag
+                            this.isResizing = false;
                         },
                         
                         breakpoint: function(swiper) {
@@ -475,66 +485,47 @@
         },
 
         updateArrowPosition: function(swiper) {
-            // Najdi všechny obrázky ve slideru
-            const $images = $(swiper.el).find('article figure img');
-            
-            if ($images.length === 0) {
-                // Pokud nejsou obrázky, nech výchozí pozici (50%)
+            // Zkontroluj, jestli už byla pozice nastavena (pokud ne bylo resize)
+            if ($(swiper.navigation.prevEl).data('position-set') && !swiper.isResizing) {
                 return;
             }
             
-            // Počkej až se obrázky načtou
-            let loadedImages = 0;
-            let totalHeight = 0;
+            // Najdi pouze viditelné obrázky nebo první obrázek jako reprezentanta
+            const $firstImage = $(swiper.el).find('article:first figure img').first();
+            
+            if ($firstImage.length === 0) {
+                // Pokud není obrázek, nech výchozí pozici (50%)
+                return;
+            }
             
             const calculatePosition = function() {
-                // Vypočítej průměrnou výšku obrázků
-                $images.each(function() {
-                    const imgHeight = $(this).height();
-                    if (imgHeight > 0) {
-                        totalHeight += imgHeight;
-                    }
-                });
+                const imgHeight = $firstImage.height();
                 
-                const avgImageHeight = totalHeight / $images.length;
-                
-                if (avgImageHeight > 0) {
-                    // Nastav pozici šipek na střed obrázků (polovina průměrné výšky)
-                    const arrowTop = avgImageHeight / 2;
+                if (imgHeight > 0) {
+                    // Nastav pozici šipek na střed prvního obrázku
+                    const arrowTop = imgHeight / 2;
                     
                     $(swiper.navigation.prevEl).css({
                         'top': arrowTop + 'px',
                         'transform': 'translateY(-50%)'
-                    });
+                    }).data('position-set', true);
                     
                     $(swiper.navigation.nextEl).css({
                         'top': arrowTop + 'px',
                         'transform': 'translateY(-50%)'
-                    });
+                    }).data('position-set', true);
                 }
             };
             
-            // Zkontroluj, jestli jsou obrázky už načtené
-            $images.each(function() {
-                if (this.complete && this.naturalHeight !== 0) {
-                    loadedImages++;
-                }
-            });
-            
-            if (loadedImages === $images.length) {
-                // Všechny obrázky jsou načtené
+            // Zkontroluj, jestli je první obrázek načtený
+            if ($firstImage[0].complete && $firstImage[0].naturalHeight !== 0) {
                 calculatePosition();
             } else {
-                // Počkej na načtení obrázků
-                $images.on('load', function() {
-                    loadedImages++;
-                    if (loadedImages === $images.length) {
-                        calculatePosition();
-                    }
-                });
+                // Počkej na načtení prvního obrázku
+                $firstImage.on('load', calculatePosition);
                 
-                // Fallback pro případ, že některé obrázky se nenačtou
-                setTimeout(calculatePosition, 1000);
+                // Fallback
+                setTimeout(calculatePosition, 500);
             }
         },
         
