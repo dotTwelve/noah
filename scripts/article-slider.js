@@ -594,11 +594,9 @@
                         display: block;
                     }
                     
-                    /* Úprava pro nadpis článku */
-                    .article-slider-active article h2,
-                    .article-slider-active article h3 {
-                        padding: 0 20px;
-                        margin: 0;
+                    /* Margin pro h2 */
+                    .article-slider-active article h2 {
+                        margin: 0 16px;
                     }
                     
                     .article-slider-active article .gapy-3 {
@@ -615,21 +613,7 @@
                         display: -webkit-box;
                         -webkit-line-clamp: 3;
                         -webkit-box-orient: vertical;
-                    }
-                    
-                    /* Přidat boční padding pro celý slider, aby šipky nezasahovaly */
-                    .article-slider-wrapper {
-                        position: relative;
-                        padding: 0 30px; /* Prostor pro šipky */
-                    }
-                    
-                    /* Upravit pozici šipek */
-                    .article-slider-wrapper .carousel-prev {
-                        left: 0; /* Změněno z -20px */
-                    }
-                    
-                    .article-slider-wrapper .carousel-next {
-                        right: 0; /* Změněno z -20px */
+                        margin: 0 16px;
                     }
                     
                     .article-slider-active .article-button-wrapper {
