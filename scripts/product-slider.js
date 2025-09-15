@@ -2,7 +2,7 @@
  * Product Slider for NOAH Natural Products
  * Převádí grid produktů na interaktivní slider pomocí Swiper.js
  * 
- * @version 3.0.0 - Navigační šipky mimo swiper kontejner
+ * @version 3.1.0 - Opravena pagination a přidán infinite loop
  * @requires jQuery 3.4.1+
  * @requires Swiper 11+
  */
@@ -149,11 +149,15 @@
                 const swiperInstance = new Swiper('#' + sliderId, {
                     // Základní nastavení - začni s 2 produkty na mobilu
                     slidesPerView: 2,
-                    slidesPerGroup: 2,
+                    slidesPerGroup: 1, // DŮLEŽITÉ: Změněno na 1 pro správnou pagination
                     spaceBetween: 0,
                     
+                    // Infinite loop
+                    loop: true,
+                    loopFillGroupWithBlank: false, // Nevyplňovat prázdnými slidy
+                    
                     // Obecné nastavení
-                    watchOverflow: true,
+                    watchOverflow: false, // Musí být false pro loop
                     threshold: 10,
                     speed: 600,
                     grabCursor: true,
@@ -168,24 +172,26 @@
                     pagination: {
                         el: $container.find('.swiper-pagination')[0],
                         clickable: true,
-                        type: 'bullets'
+                        type: 'bullets',
+                        dynamicBullets: true, // Dynamické bullets pro lepší zobrazení
+                        dynamicMainBullets: 3, // Počet hlavních kuliček
                     },
                     
                     // Responzivní breakpointy
                     breakpoints: {
                         768: {
                             slidesPerView: 3,
-                            slidesPerGroup: 3,
+                            slidesPerGroup: 1, // Jednotlivé posuny
                             spaceBetween: 0
                         },
                         1024: {
                             slidesPerView: 4,
-                            slidesPerGroup: 4,
+                            slidesPerGroup: 1,
                             spaceBetween: 0
                         },
                         1200: {
                             slidesPerView: 5,
-                            slidesPerGroup: 5,
+                            slidesPerGroup: 1,
                             spaceBetween: 0
                         }
                     },
@@ -193,23 +199,17 @@
                     // Události
                     on: {
                         init: function() {
-                            self.checkNavigationNeeded(this);
-                            self.updateNavigationState(this);
+                            self.updateNavigationVisibility(this);
                             console.log('ProductSlider: Slider ' + index + ' inicializován s ' + this.slides.length + ' produkty');
-                        },
-                        
-                        slideChange: function() {
-                            self.updateNavigationState(this);
+                            console.log('Loop mode: ' + (this.params.loop ? 'enabled' : 'disabled'));
                         },
                         
                         resize: function() {
-                            self.checkNavigationNeeded(this);
-                            self.updateNavigationState(this);
+                            self.updateNavigationVisibility(this);
                         },
                         
                         breakpoint: function(swiper) {
-                            self.checkNavigationNeeded(swiper);
-                            self.updateNavigationState(swiper);
+                            self.updateNavigationVisibility(swiper);
                         }
                     }
                 });
@@ -224,39 +224,24 @@
             }, 100);
         },
 
-        checkNavigationNeeded: function(swiper) {
-            const totalSlides = swiper.slides.length;
+        updateNavigationVisibility: function(swiper) {
+            // Při loop mode jsou navigační prvky vždy viditelné
+            const totalSlides = swiper.slides.length - (swiper.loopedSlides * 2); // Odečti duplikované slidy
             const slidesPerView = Math.ceil(swiper.params.slidesPerView);
-            const needsNavigation = totalSlides > slidesPerView;
+            const needsNavigation = totalSlides > slidesPerView || swiper.params.loop;
             
             const $prevButton = $(swiper.navigation.prevEl);
             const $nextButton = $(swiper.navigation.nextEl);
+            const $pagination = $(swiper.pagination.el);
             
             if (needsNavigation) {
                 $prevButton.show();
                 $nextButton.show();
+                $pagination.show();
             } else {
                 $prevButton.hide();
                 $nextButton.hide();
-            }
-            
-            return needsNavigation;
-        },
-
-        updateNavigationState: function(swiper) {
-            const $prevButton = $(swiper.navigation.prevEl);
-            const $nextButton = $(swiper.navigation.nextEl);
-            
-            if (swiper.isBeginning) {
-                $prevButton.addClass('disabled').attr('aria-disabled', 'true');
-            } else {
-                $prevButton.removeClass('disabled').attr('aria-disabled', 'false');
-            }
-            
-            if (swiper.isEnd) {
-                $nextButton.addClass('disabled').attr('aria-disabled', 'true');
-            } else {
-                $nextButton.removeClass('disabled').attr('aria-disabled', 'false');
+                $pagination.hide();
             }
         },
 
@@ -322,6 +307,7 @@
                         top: 50%;
                         transform: translateY(-50%);
                         z-index: 10;
+                        transition: all 0.3s;
                     }
                     
                     .product-slider-wrapper .carousel-prev {
@@ -332,15 +318,8 @@
                         right: -20px;
                     }
                     
-                    /* Disabled stav */
-                    .product-slider-wrapper .carousel-nav.disabled {
-                        opacity: 0.35;
-                        cursor: not-allowed;
-                        pointer-events: none;
-                    }
-                    
                     /* Hover efekt */
-                    .product-slider-wrapper .carousel-nav:not(.disabled):hover {
+                    .product-slider-wrapper .carousel-nav:hover {
                         transform: translateY(-50%) scale(1.1);
                     }
                     
@@ -359,7 +338,7 @@
                         display: inline-block;
                         border-radius: 50%;
                         background: #ccc;
-                        opacity: 1;
+                        opacity: 0.4;
                         margin: 0 4px;
                         cursor: pointer;
                         transition: all 0.3s;
@@ -368,13 +347,31 @@
                     }
                     
                     .slider-active .swiper-pagination-bullet:hover {
-                        background: #999;
+                        opacity: 0.7;
                     }
                     
                     .slider-active .swiper-pagination-bullet-active {
                         background: #27ae60;
-                        width: 24px;
-                        border-radius: 4px;
+                        opacity: 1;
+                        transform: scale(1.2);
+                    }
+                    
+                    /* Dynamické bullets */
+                    .slider-active .swiper-pagination-bullet-active-main {
+                        background: #27ae60;
+                        opacity: 1;
+                    }
+                    
+                    .slider-active .swiper-pagination-bullet-active-prev,
+                    .slider-active .swiper-pagination-bullet-active-prev-prev {
+                        opacity: 0.6;
+                        transform: scale(0.9);
+                    }
+                    
+                    .slider-active .swiper-pagination-bullet-active-next,
+                    .slider-active .swiper-pagination-bullet-active-next-next {
+                        opacity: 0.6;
+                        transform: scale(0.9);
                     }
                     
                     /* Responzivní úpravy */
@@ -385,8 +382,12 @@
                             margin: 0 3px;
                         }
                         
-                        .slider-active .swiper-pagination-bullet-active {
-                            width: 20px;
+                        .product-slider-wrapper .carousel-prev {
+                            left: -15px;
+                        }
+                        
+                        .product-slider-wrapper .carousel-next {
+                            right: -15px;
                         }
                     }
                     
@@ -415,7 +416,7 @@
         },
 
         debug: function() {
-            console.log('ProductSlider v3.0 Debug:');
+            console.log('ProductSlider v3.1 Debug:');
             console.log('Instances:', this.instances);
             this.instances.forEach((instance, index) => {
                 const swiper = instance.swiper;
@@ -424,7 +425,9 @@
                     totalItems: instance.totalItems,
                     activeIndex: swiper.activeIndex,
                     slidesPerGroup: swiper.params.slidesPerGroup,
-                    slidesPerView: swiper.params.slidesPerView
+                    slidesPerView: swiper.params.slidesPerView,
+                    loop: swiper.params.loop,
+                    realIndex: swiper.realIndex
                 });
             });
         }
