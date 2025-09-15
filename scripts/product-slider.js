@@ -2,7 +2,7 @@
  * Product Slider for NOAH Natural Products
  * Převádí grid produktů na interaktivní slider pomocí Swiper.js
  * 
- * @version 3.4.0 - Vyrovnání výšky produktů ve slideru
+ * @version 4.0.0 - Kompletní verze s hover efektem na šipkách
  * @requires jQuery 3.4.1+
  * @requires Swiper 11+
  */
@@ -71,7 +71,7 @@
                 self.createSlider($container, $grid, index);
             });
             
-            // Přidej listener pro změnu velikosti okna pro re-inicializaci
+            // Přidej listener pro změnu velikosti okna
             $(window).on('resize.productSlider', self.debounce(function() {
                 self.handleResize();
             }, 250));
@@ -103,7 +103,6 @@
                 
                 // Pokud nemá slider a potřebuje ho, vytvoř ho
                 if (!hasSlider && needsSlider) {
-                    // Nejdřív odstraň případné zbytky
                     if ($grid.parent().hasClass('product-slider-wrapper')) {
                         $grid.unwrap();
                     }
@@ -114,7 +113,6 @@
                     $grid.removeClass('swiper swiper-initialized carousel');
                     $container.removeClass('slider-active');
                     
-                    // Vytvoř nový slider
                     self.createSlider($container, $grid, index);
                 }
             });
@@ -431,13 +429,14 @@
                         visibility: visible !important;
                     }
                     
-                    /* Navigační šipky - specifické pro product slider */
+                    /* Navigační šipky */
                     .product-slider-wrapper .carousel-nav {
                         position: absolute;
                         top: 50%;
                         transform: translateY(-50%);
                         z-index: 10;
-                        transition: all 0.3s;
+                        transition: opacity 0.3s ease, transform 0.3s ease;
+                        opacity: 0.5;
                     }
                     
                     .product-slider-wrapper .carousel-prev {
@@ -448,9 +447,23 @@
                         right: -20px;
                     }
                     
-                    /* Hover efekt */
+                    /* Hover efekt na wrapperu - zobrazí šipky */
+                    .product-slider-wrapper:hover .carousel-nav {
+                        opacity: 1 !important;
+                    }
+                    
+                    /* Hover efekt přímo na šipce */
                     .product-slider-wrapper .carousel-nav:hover {
                         transform: translateY(-50%) scale(1.1);
+                        opacity: 1 !important;
+                    }
+                    
+                    /* Touch zařízení a malé obrazovky - vždy plná opacita */
+                    @media (hover: none) and (pointer: coarse),
+                           (max-width: 1024px) {
+                        .product-slider-wrapper .carousel-nav {
+                            opacity: 1 !important;
+                        }
                     }
                     
                     /* Pagination */
@@ -478,7 +491,6 @@
                     
                     .slider-active .swiper-pagination-bullet:hover {
                         background: #999;
-                        transform: scale(1.1);
                     }
                     
                     .slider-active .swiper-pagination-bullet-active {
@@ -497,14 +509,6 @@
                         
                         .slider-active .swiper-pagination-bullet-active {
                             width: 20px;
-                        }
-                        
-                        .product-slider-wrapper .carousel-prev {
-                            left: -15px;
-                        }
-                        
-                        .product-slider-wrapper .carousel-next {
-                            right: -15px;
                         }
                     }
                 </style>
@@ -530,7 +534,7 @@
         },
 
         debug: function() {
-            console.log('ProductSlider v3.2 Debug:');
+            console.log('ProductSlider v4.0 Debug:');
             console.log('Window width:', window.innerWidth + 'px');
             console.log('Instances:', this.instances);
             this.instances.forEach((instance, index) => {
