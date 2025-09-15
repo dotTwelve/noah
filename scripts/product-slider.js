@@ -485,10 +485,6 @@
                     
                     /* Responzivní úpravy */
                     @media (max-width: 768px) {
-                        .slider-active .swiper {
-                            margin-left: -16px;
-                            margin-right: -16px;
-                        }                        
                         .swiper-pagination-bullet {
                             width: 6px;
                             height: 6px;
