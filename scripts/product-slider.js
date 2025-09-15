@@ -2,7 +2,7 @@
  * Product Slider for NOAH Natural Products
  * Převádí grid produktů na interaktivní slider pomocí Swiper.js
  * 
- * @version 3.1.0 - Opravena pagination a přidán infinite loop
+ * @version 3.2.0 - Opraveny breakpointy podle Bootstrap grid
  * @requires jQuery 3.4.1+
  * @requires Swiper 11+
  */
@@ -147,7 +147,7 @@
                 const $nextEl = $grid.parent().find('.swiper-button-next-custom')[0];
                 
                 const swiperInstance = new Swiper('#' + sliderId, {
-                    // Základní nastavení - začni s 2 produkty na mobilu
+                    // Základní nastavení - začni s 2 produkty na mobilu (xs)
                     slidesPerView: 2,
                     slidesPerGroup: 1, // DŮLEŽITÉ: Změněno na 1 pro správnou pagination
                     spaceBetween: 0,
@@ -178,17 +178,27 @@
                     
                     // Responzivní breakpointy
                     breakpoints: {
-                        768: {
-                            slidesPerView: 3,
-                            slidesPerGroup: 1, // Jednotlivé posuny
+                        576: {  // sm
+                            slidesPerView: 2,
+                            slidesPerGroup: 1,
                             spaceBetween: 0
                         },
-                        1024: {
+                        768: {  // md
+                            slidesPerView: 2,
+                            slidesPerGroup: 1,
+                            spaceBetween: 0
+                        },
+                        992: {  // lg
+                            slidesPerView: 3,
+                            slidesPerGroup: 1,
+                            spaceBetween: 0
+                        },
+                        1204: { // xl
                             slidesPerView: 4,
                             slidesPerGroup: 1,
                             spaceBetween: 0
                         },
-                        1200: {
+                        1502: { // xxl
                             slidesPerView: 5,
                             slidesPerGroup: 1,
                             spaceBetween: 0
@@ -199,8 +209,11 @@
                     on: {
                         init: function() {
                             self.updateNavigationVisibility(this);
-                            console.log('ProductSlider: Slider ' + index + ' inicializován s ' + this.slides.length + ' produkty');
-                            console.log('Loop mode: ' + (this.params.loop ? 'enabled' : 'disabled'));
+                            console.log('ProductSlider: Slider ' + index + ' inicializován');
+                            console.log('- Celkem produktů: ' + totalItems);
+                            console.log('- Zobrazeno produktů: ' + this.params.slidesPerView);
+                            console.log('- Loop mode: ' + (this.params.loop ? 'zapnuto' : 'vypnuto'));
+                            console.log('- Aktuální breakpoint: ' + window.innerWidth + 'px');
                         },
                         
                         resize: function() {
@@ -377,7 +390,7 @@
                         }
                     }
                     
-                    @media (max-width: 1200px) {
+                    @media (max-width: 1204px) {
                         .product-slider-wrapper .carousel-nav {
                             opacity: 1;
                         }
@@ -402,7 +415,8 @@
         },
 
         debug: function() {
-            console.log('ProductSlider v3.1 Debug:');
+            console.log('ProductSlider v3.2 Debug:');
+            console.log('Window width:', window.innerWidth + 'px');
             console.log('Instances:', this.instances);
             this.instances.forEach((instance, index) => {
                 const swiper = instance.swiper;
@@ -413,7 +427,8 @@
                     slidesPerGroup: swiper.params.slidesPerGroup,
                     slidesPerView: swiper.params.slidesPerView,
                     loop: swiper.params.loop,
-                    realIndex: swiper.realIndex
+                    realIndex: swiper.realIndex,
+                    currentBreakpoint: swiper.currentBreakpoint
                 });
             });
         }
