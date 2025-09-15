@@ -633,15 +633,31 @@
                         margin: 0 auto !important;
                     }
                     
+                    /* Navigační šipky - pouze pro article-slider */
+                    [id^="article-slider-"] .carousel-nav {
+                        position: absolute;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        z-index: 10;
+                    }
+                    
+                    [id^="article-slider-"] .carousel-prev {
+                        left: 15px;
+                    }
+                    
+                    [id^="article-slider-"] .carousel-next {
+                        right: 15px;
+                    }
+                    
                     /* Disabled stav pro navigační tlačítka */
-                    .carousel-nav.disabled {
+                    [id^="article-slider-"] .carousel-nav.disabled {
                         opacity: 0.35;
                         cursor: not-allowed;
                         pointer-events: none;
                     }
                     
                     /* Hover efekt pro navigační tlačítka */
-                    .carousel-nav:not(.disabled):hover {
+                    [id^="article-slider-"] .carousel-nav:not(.disabled):hover {
                         transform: translateY(-50%) scale(1.1);
                     }
                     
