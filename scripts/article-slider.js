@@ -2,7 +2,7 @@
  * Article Slider for NOAH Natural Products
  * Převádí seznam článků na interaktivní slider pomocí Swiper.js
  * 
- * @version 7.0.0 - Čistější implementace bez hacků
+ * @version 8.0.0 - Bootstrap grid breakpointy
  * @requires jQuery 3.4.1+
  * @requires Swiper 11+
  */
@@ -104,6 +104,68 @@
 
                 self.createSlider($container, $wrapper, index);
             });
+            
+            // Přidej listener pro změnu velikosti okna
+            $(window).on('resize.articleSlider', self.debounce(function() {
+                self.handleResize();
+            }, 250));
+        },
+        
+        handleResize: function() {
+            const self = this;
+            
+            // Projdi všechny kontejnery znovu
+            $(this.config.containerSelector).each(function(index) {
+                const $container = $(this);
+                const $wrapper = $container.find(self.config.wrapperSelector);
+                const totalItems = $wrapper.find(self.config.itemSelector).length;
+                
+                // Zjisti kolik článků se vejde
+                const windowWidth = window.innerWidth;
+                let expectedSlidesPerView = 1; // xs/sm/md
+                
+                if (windowWidth >= 1502) {
+                    expectedSlidesPerView = 5; // xxl
+                } else if (windowWidth >= 1204) {
+                    expectedSlidesPerView = 4; // xl
+                } else if (windowWidth >= 992) {
+                    expectedSlidesPerView = 3; // lg
+                }
+                
+                const hasSlider = $wrapper.hasClass('swiper-initialized');
+                const needsSlider = totalItems > expectedSlidesPerView;
+                
+                // Pokud nemá slider a potřebuje ho, vytvoř ho
+                if (!hasSlider && needsSlider) {
+                    // Vyčisti případné zbytky
+                    if ($wrapper.parent().hasClass('article-slider-wrapper')) {
+                        $wrapper.unwrap();
+                    }
+                    $wrapper.find('.swiper-wrapper').children().unwrap();
+                    $wrapper.find('.swiper-slide').removeClass('swiper-slide');
+                    $container.find('.swiper-pagination').remove();
+                    $container.find('.carousel-nav').remove();
+                    $wrapper.removeClass('swiper swiper-initialized carousel');
+                    $container.removeClass('article-slider-active');
+                    
+                    // Vytvoř nový slider
+                    self.createSlider($container, $wrapper, index);
+                }
+            });
+        },
+        
+        debounce: function(func, wait) {
+            let timeout;
+            return function executedFunction() {
+                const context = this;
+                const args = arguments;
+                const later = function() {
+                    timeout = null;
+                    func.apply(context, args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
         },
 
         createCustomNavigation: function(sliderId) {
@@ -146,6 +208,31 @@
             const totalItems = $articles.length;
             
             if (totalItems === 0) {
+                return;
+            }
+            
+            // Zjisti kolik článků se vejde podle aktuální šířky okna
+            const windowWidth = window.innerWidth;
+            let expectedSlidesPerView = 1; // výchozí pro xs/sm/md
+            
+            if (windowWidth >= 1502) {
+                expectedSlidesPerView = 5; // xxl
+            } else if (windowWidth >= 1204) {
+                expectedSlidesPerView = 4; // xl
+            } else if (windowWidth >= 992) {
+                expectedSlidesPerView = 3; // lg
+            }
+            
+            // Pokud se všechny články vejdou, neinicializuj slider
+            if (totalItems <= expectedSlidesPerView) {
+                console.log('ArticleSlider: Slider ' + index + ' přeskočen - všech ' + totalItems + ' článků se vejde na obrazovku');
+                // Vyčisti HTML ale nech články viditelné
+                $hrs.remove();
+                const $nextButton = $container.find(this.config.nextButtonSelector);
+                if ($nextButton.length) {
+                    $nextButton.remove();
+                }
+                $articles.removeClass('hidden').show();
                 return;
             }
             
@@ -245,16 +332,24 @@
                 const $nextEl = $wrapper.parent().find('.swiper-button-next-custom')[0];
                 
                 const swiperInstance = new Swiper('#' + sliderId, {
-                    // Základní nastavení - VŽDY začni s 1 sliderem
+                    // Základní nastavení - 1 článek pro xs/sm/md
                     slidesPerView: 1,
                     slidesPerGroup: 1,
                     spaceBetween: 8,
                     
+                    // Infinite loop
+                    loop: true,
+                    loopFillGroupWithBlank: false,
+                    
+                    // Automatická výška
+                    autoHeight: false, // Zajistí stejnou výšku všech slidů
+                    
                     // Obecné nastavení
-                    watchOverflow: true,
+                    watchOverflow: false, // Musí být false pro loop
                     threshold: 10,
                     speed: 600,
                     grabCursor: true,
+                    allowTouchMove: true,
                     
                     // Navigace
                     navigation: {
@@ -266,19 +361,35 @@
                     pagination: {
                         el: $container.find('.swiper-pagination')[0],
                         clickable: true,
-                        type: 'bullets'
+                        type: 'bullets',
+                        dynamicBullets: false
                     },
                     
-                    // Responzivní nastavení - POUZE pro větší obrazovky
+                    // Responzivní breakpointy podle Bootstrap grid
                     breakpoints: {
-                        768: {
-                            slidesPerView: 2,
-                            slidesPerGroup: 2,
+                        576: {  // sm - stále 1 článek
+                            slidesPerView: 1,
+                            slidesPerGroup: 1,
+                            spaceBetween: 8
+                        },
+                        768: {  // md - stále 1 článek
+                            slidesPerView: 1,
+                            slidesPerGroup: 1,
                             spaceBetween: 16
                         },
-                        1200: {
+                        992: {  // lg - 3 články
+                            slidesPerView: 3,
+                            slidesPerGroup: 1,
+                            spaceBetween: 16
+                        },
+                        1204: { // xl - 4 články
                             slidesPerView: 4,
-                            slidesPerGroup: 4,
+                            slidesPerGroup: 1,
+                            spaceBetween: 16
+                        },
+                        1502: { // xxl - 5 článků
+                            slidesPerView: 5,
+                            slidesPerGroup: 1,
                             spaceBetween: 16
                         }
                     },
@@ -286,32 +397,49 @@
                     // Události
                     on: {
                         init: function() {
-                            self.checkNavigationNeeded(this);
-                            self.updateNavigationState(this);
-                            console.log('Slider inicializován:', {
-                                slides: this.slides.length,
-                                perView: this.params.slidesPerView,
-                                perGroup: this.params.slidesPerGroup
-                            });
+                            self.updateNavigationVisibility(this);
+                            console.log('ArticleSlider: Slider ' + index + ' inicializován');
+                            console.log('- Celkem článků: ' + totalItems);
+                            console.log('- Zobrazeno článků: ' + this.params.slidesPerView);
+                            console.log('- Loop mode: ' + (this.params.loop ? 'zapnuto' : 'vypnuto'));
+                            console.log('- Aktuální breakpoint: ' + window.innerWidth + 'px');
                         },
                         
                         slideChange: function() {
-                            self.updateNavigationState(this);
                             self.handleLazyLoad(this);
                         },
                         
                         resize: function() {
-                            self.checkNavigationNeeded(this);
-                            self.updateNavigationState(this);
+                            // Při změně velikosti okna zkontroluj, jestli je slider stále potřeba
+                            const windowWidth = window.innerWidth;
+                            let expectedSlidesPerView = 1;
+                            
+                            if (windowWidth >= 1502) {
+                                expectedSlidesPerView = 5;
+                            } else if (windowWidth >= 1204) {
+                                expectedSlidesPerView = 4;
+                            } else if (windowWidth >= 992) {
+                                expectedSlidesPerView = 3;
+                            }
+                            
+                            // Pokud se teď všechny články vejdou, skryj navigaci
+                            if (totalItems <= expectedSlidesPerView) {
+                                $(this.navigation.prevEl).hide();
+                                $(this.navigation.nextEl).hide();
+                                $(this.pagination.el).hide();
+                                this.allowTouchMove = false;
+                                this.allowSlideNext = false;
+                                this.allowSlidePrev = false;
+                            } else {
+                                this.allowTouchMove = true;
+                                this.allowSlideNext = true;
+                                this.allowSlidePrev = true;
+                                self.updateNavigationVisibility(this);
+                            }
                         },
                         
-                        breakpoint: function(swiper, breakpointParams) {
-                            console.log('Breakpoint změna:', {
-                                perView: breakpointParams.slidesPerView,
-                                perGroup: breakpointParams.slidesPerGroup
-                            });
-                            self.checkNavigationNeeded(swiper);
-                            self.updateNavigationState(swiper);
+                        breakpoint: function(swiper) {
+                            self.updateNavigationVisibility(swiper);
                         }
                     }
                 });
@@ -326,39 +454,24 @@
             }, 100);
         },
 
-        checkNavigationNeeded: function(swiper) {
-            const totalSlides = swiper.slides.length;
+        updateNavigationVisibility: function(swiper) {
+            // Při loop mode jsou navigační prvky vždy viditelné pokud je víc článků než se vejde
+            const totalSlides = swiper.slides.length - (swiper.loopedSlides * 2); // Odečti duplikované slidy
             const slidesPerView = Math.ceil(swiper.params.slidesPerView);
-            const needsNavigation = totalSlides > slidesPerView;
+            const needsNavigation = totalSlides > slidesPerView || swiper.params.loop;
             
             const $prevButton = $(swiper.navigation.prevEl);
             const $nextButton = $(swiper.navigation.nextEl);
+            const $pagination = $(swiper.pagination.el);
             
             if (needsNavigation) {
                 $prevButton.show();
                 $nextButton.show();
+                $pagination.show();
             } else {
                 $prevButton.hide();
                 $nextButton.hide();
-            }
-            
-            return needsNavigation;
-        },
-
-        updateNavigationState: function(swiper) {
-            const $prevButton = $(swiper.navigation.prevEl);
-            const $nextButton = $(swiper.navigation.nextEl);
-            
-            if (swiper.isBeginning) {
-                $prevButton.addClass('disabled').attr('aria-disabled', 'true');
-            } else {
-                $prevButton.removeClass('disabled').attr('aria-disabled', 'false');
-            }
-            
-            if (swiper.isEnd) {
-                $nextButton.addClass('disabled').attr('aria-disabled', 'true');
-            } else {
-                $nextButton.removeClass('disabled').attr('aria-disabled', 'false');
+                $pagination.hide();
             }
         },
 
@@ -431,9 +544,9 @@
                         visibility: visible !important;
                     }
                     
-                    /* Články */
+                    /* Články - zajistit stejnou výšku */
                     .article-slider-active article {
-                        height: 100%;
+                        height: auto; /* Automatická výška pro správné vyrovnání */
                         display: flex !important;
                         flex-direction: column;
                         gap: 20px;
@@ -487,7 +600,8 @@
                         display: flex !important;
                         justify-content: center !important;
                         align-items: center !important;
-                        margin-top: 15px;
+                        margin-top: auto; /* Přisadit tlačítko ke spodní části */
+                        padding-top: 15px;
                         width: 100% !important;
                         text-align: center !important;
                     }
@@ -498,6 +612,7 @@
                         top: 100px;
                         transform: translateY(-50%);
                         z-index: 10;
+                        transition: all 0.3s;
                     }
                     
                     .article-slider-wrapper .carousel-prev {
@@ -508,15 +623,8 @@
                         right: -20px;
                     }
                     
-                    /* Disabled stav */
-                    .article-slider-wrapper .carousel-nav.disabled {
-                        opacity: 0.35;
-                        cursor: not-allowed;
-                        pointer-events: none;
-                    }
-                    
                     /* Hover efekt */
-                    .article-slider-wrapper .carousel-nav:not(.disabled):hover {
+                    .article-slider-wrapper .carousel-nav:hover {
                         transform: translateY(-50%) scale(1.1);
                     }
                     
@@ -566,6 +674,14 @@
                             top: 110px;
                         }
                         
+                        .article-slider-wrapper .carousel-prev {
+                            left: -15px;
+                        }
+                        
+                        .article-slider-wrapper .carousel-next {
+                            right: -15px;
+                        }
+                        
                         .article-slider-active .swiper-pagination-bullet {
                             width: 6px;
                             height: 6px;
@@ -577,7 +693,7 @@
                         }
                     }
                     
-                    @media (max-width: 1200px) {
+                    @media (max-width: 1204px) {
                         .article-slider-wrapper .carousel-nav {
                             opacity: 1;
                         }
@@ -589,6 +705,9 @@
         },
 
         destroy: function() {
+            // Odstraň event listener
+            $(window).off('resize.articleSlider');
+            
             this.instances.forEach(instance => {
                 if (instance.swiper) {
                     instance.swiper.destroy(true, true);
@@ -602,7 +721,8 @@
         },
 
         debug: function() {
-            console.log('ArticleSlider v7.0 Debug:');
+            console.log('ArticleSlider v8.0 Debug:');
+            console.log('Window width:', window.innerWidth + 'px');
             console.log('Instances:', this.instances);
             this.instances.forEach((instance, index) => {
                 const swiper = instance.swiper;
@@ -612,7 +732,9 @@
                     activeIndex: swiper.activeIndex,
                     slidesPerGroup: swiper.params.slidesPerGroup,
                     slidesPerView: swiper.params.slidesPerView,
-                    realIndex: swiper.realIndex
+                    loop: swiper.params.loop,
+                    realIndex: swiper.realIndex,
+                    currentBreakpoint: swiper.currentBreakpoint
                 });
             });
         }
