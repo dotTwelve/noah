@@ -378,15 +378,7 @@
                     }
                     
                     /* Responzivní úpravy */
-                    @media (max-width: 768px) {
-                        .product-slider-wrapper .carousel-prev {
-                            left: 10px;
-                        }
-                        
-                        .product-slider-wrapper .carousel-next {
-                            right: 10px;
-                        }
-                        
+                    @media (max-width: 768px) {                        
                         .slider-active .swiper-pagination-bullet {
                             width: 6px;
                             height: 6px;
