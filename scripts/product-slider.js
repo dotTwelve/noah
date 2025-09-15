@@ -189,7 +189,7 @@
             
             // Přidej třídy bez změny struktury
             $container.addClass('slider-active');
-            $grid.addClass('swiper swiper-initialized');
+            $grid.addClass('swiper swiper-initialized carousel');
             
             // Přidej třídu každému produktu
             $items.addClass('swiper-slide');
