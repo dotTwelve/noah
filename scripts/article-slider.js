@@ -197,7 +197,7 @@
                 
                 const $textWrapper = $article.find('.gapy-3');
                 if ($textWrapper.length && articleHref && !$textWrapper.find('.article-button-wrapper').length) {
-                    const $buttonWrapper = $('<div class="article-button-wrapper" style="text-align: center; width: 100%;"></div>');
+                    const $buttonWrapper = $('<div class="article-button-wrapper"></div>');
                     const $discoverBtn = $('<a>')
                         .attr('href', articleHref)
                         .attr('class', 'btn fg sh-md ou bg-se fs-lg-3 fs-1 ca-c')
@@ -564,14 +564,6 @@
                     @media (max-width: 768px) {
                         .article-slider-wrapper .carousel-nav {
                             top: 110px;
-                        }
-                        
-                        .article-slider-wrapper .carousel-prev {
-                            left: 10px;
-                        }
-                        
-                        .article-slider-wrapper .carousel-next {
-                            right: 10px;
                         }
                         
                         .article-slider-active .swiper-pagination-bullet {
