@@ -488,26 +488,7 @@
                         .slider-active .swiper {
                             margin-left: -16px;
                             margin-right: -16px;
-                        }
-                    
-                        .carousel-nav.btn {
-                            width: 32px;
-                            height: 32px;
-                        }
-                        
-                        .carousel-nav .ic {
-                            width: 12px;
-                            height: 12px;
-                        }
-                        
-                        .carousel-prev {
-                            left: 5px;
-                        }
-                        
-                        .carousel-next {
-                            right: 5px;
-                        }
-                        
+                        }                        
                         .swiper-pagination-bullet {
                             width: 6px;
                             height: 6px;
