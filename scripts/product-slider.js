@@ -2,7 +2,7 @@
  * Product Slider for NOAH Natural Products
  * Převádí grid produktů na interaktivní slider pomocí Swiper.js
  * 
- * @version 2.3.0 - Automatické skrývání navigačních šipek když není potřeba scrollovat
+ * @version 2.4.0 - Custom navigační šipky s SVG ikonami
  * @requires jQuery 3.4.1+
  * @requires Swiper 11+
  */
@@ -17,7 +17,9 @@
             gridSelector: '.card-group',
             itemSelector: '.card-item',
             swiperCDN: 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js',
-            swiperCSS: 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css'
+            swiperCSS: 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css',
+            // Cesta k SVG ikonám - můžete upravit podle potřeby
+            svgIconsPath: '/images/icons/fa/solid.svg?1757317552'
         },
 
         // Sledování inicializovaných sliderů
@@ -87,6 +89,42 @@
         },
 
         /**
+         * Vytvoření custom navigačních šipek
+         */
+        createCustomNavigation: function(sliderId) {
+            const prevButton = `
+                <a href="#${sliderId}" 
+                   class="carousel-nav carousel-prev btn fg ico-md sh-md ml-n4 NoScroll bg-de swiper-button-prev-custom" 
+                   role="button" 
+                   rel="nofollow"
+                   aria-label="Předchozí">
+                    <svg class="ic ic-sm" aria-hidden="true">
+                        <use href="${this.config.svgIconsPath}#angle-left"></use>
+                    </svg>
+                    <span class="sr-only">Předchozí</span>
+                </a>
+            `;
+            
+            const nextButton = `
+                <a href="#${sliderId}" 
+                   class="carousel-nav carousel-next btn fg ico-md sh-md mr-n4 NoScroll bg-de swiper-button-next-custom" 
+                   role="button" 
+                   rel="nofollow"
+                   aria-label="Další">
+                    <svg class="ic ic-sm" aria-hidden="true">
+                        <use href="${this.config.svgIconsPath}#angle-right"></use>
+                    </svg>
+                    <span class="sr-only">Další</span>
+                </a>
+            `;
+            
+            return {
+                prevButton: prevButton,
+                nextButton: nextButton
+            };
+        },
+
+        /**
          * Kontrola, zda jsou potřeba navigační šipky
          */
         checkNavigationNeeded: function(swiper) {
@@ -108,6 +146,27 @@
             }
             
             return needsNavigation;
+        },
+
+        /**
+         * Aktualizace stavu navigačních tlačítek
+         */
+        updateNavigationState: function(swiper) {
+            const $prevButton = $(swiper.navigation.prevEl);
+            const $nextButton = $(swiper.navigation.nextEl);
+            
+            // Aktualizuj disabled stav
+            if (swiper.isBeginning) {
+                $prevButton.addClass('disabled').attr('aria-disabled', 'true');
+            } else {
+                $prevButton.removeClass('disabled').attr('aria-disabled', 'false');
+            }
+            
+            if (swiper.isEnd) {
+                $nextButton.addClass('disabled').attr('aria-disabled', 'true');
+            } else {
+                $nextButton.removeClass('disabled').attr('aria-disabled', 'false');
+            }
         },
 
         /**
@@ -138,9 +197,12 @@
             // Obal existující produkty do wrapper
             $items.wrapAll('<div class="swiper-wrapper"></div>');
             
-            // Přidej navigaci
-            $grid.append('<div class="swiper-button-prev"></div>');
-            $grid.append('<div class="swiper-button-next"></div>');
+            // Vytvoř custom navigační šipky
+            const navigation = this.createCustomNavigation(sliderId);
+            
+            // Přidej navigaci do kontejneru
+            $grid.append(navigation.prevButton);
+            $grid.append(navigation.nextButton);
             
             // Přidej pagination
             $container.append('<div class="swiper-pagination"></div>');
@@ -161,24 +223,22 @@
                     speed: 600,
                     grabCursor: true,
                     
-                    // Navigace
+                    // Navigace - použij custom tlačítka
                     navigation: {
-                        nextEl: '#' + sliderId + ' .swiper-button-next',
-                        prevEl: '#' + sliderId + ' .swiper-button-prev',
+                        nextEl: '#' + sliderId + ' .swiper-button-next-custom',
+                        prevEl: '#' + sliderId + ' .swiper-button-prev-custom',
                     },
                     
-                    // Pagination - použijeme bullets místo custom
+                    // Pagination
                     pagination: {
                         el: $container.find('.swiper-pagination')[0],
                         clickable: true,
                         type: 'bullets',
                         dynamicBullets: false,
                         renderBullet: function (index, className) {
-                            // Vypočítej číslo skupiny
                             const groupNumber = Math.floor(index / this.params.slidesPerGroup) + 1;
                             const isFirstInGroup = index % this.params.slidesPerGroup === 0;
                             
-                            // Renderuj pouze první slide z každé skupiny
                             if (isFirstInGroup) {
                                 return '<span class="' + className + '" data-slide-index="' + index + '"></span>';
                             }
@@ -213,43 +273,58 @@
                     // Události
                     on: {
                         init: function() {
-                            // Zajisti správné nastavení skupin
                             if (this.params.slidesPerGroup !== this.params.slidesPerView) {
                                 this.params.slidesPerGroup = this.params.slidesPerView;
                                 this.update();
                             }
                             
-                            // Oprav pagination po inicializaci
                             self.updatePagination(this);
-                            // Kontrola navigace při inicializaci
                             self.checkNavigationNeeded(this);
+                            self.updateNavigationState(this);
+                            
+                            // Přidej click handlery pro custom navigaci
+                            const $prevBtn = $(this.navigation.prevEl);
+                            const $nextBtn = $(this.navigation.nextEl);
+                            const swiper = this;
+                            
+                            $prevBtn.on('click', function(e) {
+                                e.preventDefault();
+                                if (!$(this).hasClass('disabled')) {
+                                    swiper.slidePrev();
+                                }
+                            });
+                            
+                            $nextBtn.on('click', function(e) {
+                                e.preventDefault();
+                                if (!$(this).hasClass('disabled')) {
+                                    swiper.slideNext();
+                                }
+                            });
                             
                             console.log('ProductSlider: Slider ' + index + ' inicializován s ' + this.slides.length + ' produkty');
                         },
                         
                         slideChange: function() {
-                            // Aktualizuj aktivní bullet při změně slidu
                             self.updatePaginationActive(this);
+                            self.updateNavigationState(this);
                         },
                         
                         breakpoint: function() {
-                            // Ujisti se, že slidesPerGroup = slidesPerView při změně breakpointu
                             if (this.params.slidesPerGroup !== this.params.slidesPerView) {
                                 this.params.slidesPerGroup = this.params.slidesPerView;
                                 this.update();
                             }
                             
-                            // Aktualizuj pagination po změně breakpointu
                             setTimeout(() => {
                                 self.updatePagination(this);
-                                // Kontrola navigace při změně breakpointu
                                 self.checkNavigationNeeded(this);
+                                self.updateNavigationState(this);
                             }, 100);
                         },
                         
                         resize: function() {
-                            // Kontrola navigace při změně velikosti okna
                             self.checkNavigationNeeded(this);
+                            self.updateNavigationState(this);
                         }
                     }
                 };
@@ -275,7 +350,6 @@
             const totalGroups = Math.ceil(swiper.slides.length / swiper.params.slidesPerGroup);
             const $pagination = $(swiper.pagination.el);
             
-            // Skryj pagination pokud je jen jedna skupina
             if (totalGroups <= 1) {
                 $pagination.hide();
                 return;
@@ -283,15 +357,12 @@
                 $pagination.show();
             }
             
-            // Vyčisti existující bullets
             $pagination.empty();
             
-            // Vytvoř nové bullets pro každou skupinu
             for (let i = 0; i < totalGroups; i++) {
                 const slideIndex = i * swiper.params.slidesPerGroup;
                 const $bullet = $('<span class="swiper-pagination-bullet" data-slide-index="' + slideIndex + '"></span>');
                 
-                // Přidej click handler
                 $bullet.on('click', function() {
                     swiper.slideTo(slideIndex);
                 });
@@ -299,7 +370,6 @@
                 $pagination.append($bullet);
             }
             
-            // Nastav aktivní bullet
             this.updatePaginationActive(swiper);
         },
 
@@ -310,10 +380,7 @@
             const currentGroup = Math.floor(swiper.activeIndex / swiper.params.slidesPerGroup);
             const $pagination = $(swiper.pagination.el);
             
-            // Odstraň aktivní třídu ze všech bullets
             $pagination.find('.swiper-pagination-bullet').removeClass('swiper-pagination-bullet-active');
-            
-            // Přidej aktivní třídu správnému bullet
             $pagination.find('.swiper-pagination-bullet').eq(currentGroup).addClass('swiper-pagination-bullet-active');
         },
 
@@ -371,50 +438,53 @@
                         visibility: visible !important;
                     }
                     
-                    /* Navigační šipky */
-                    .swiper-button-prev,
-                    .swiper-button-next {
+                    /* Custom navigační šipky */
+                    .carousel-nav {
                         position: absolute;
                         top: 40%;
-                        width: 40px;
-                        height: 40px;
-                        margin-top: -20px;
+                        transform: translateY(-50%);
                         z-index: 10;
-                        cursor: pointer;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        background: white;
-                        border-radius: 50%;
-                        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
                         transition: all 0.3s ease;
+                        text-decoration: none;
                     }
                     
-                    .swiper-button-prev {
+                    .carousel-prev {
                         left: 10px;
                     }
                     
-                    .swiper-button-next {
+                    .carousel-next {
                         right: 10px;
                     }
                     
-                    .swiper-button-prev:after,
-                    .swiper-button-next:after {
-                        font-size: 16px;
-                        color: #333;
-                        font-weight: bold;
-                    }
-                    
-                    .swiper-button-prev:hover,
-                    .swiper-button-next:hover {
-                        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-                        transform: scale(1.1);
-                    }
-                    
-                    .swiper-button-disabled {
+                    /* Disabled stav pro navigační tlačítka */
+                    .carousel-nav.disabled {
                         opacity: 0.35;
-                        cursor: auto;
+                        cursor: not-allowed;
                         pointer-events: none;
+                    }
+                    
+                    /* Hover efekt */
+                    .carousel-nav:not(.disabled):hover {
+                        transform: translateY(-50%) scale(1.1);
+                    }
+                    
+                    /* Pokud nejsou definované třídy btn, fg, ico-md, sh-md, bg-de */
+                    .carousel-nav.btn {
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        padding: 0.5rem;
+                        background-color: white;
+                        border-radius: 50%;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+                        width: 40px;
+                        height: 40px;
+                    }
+                    
+                    .carousel-nav .ic {
+                        width: 16px;
+                        height: 16px;
+                        fill: currentColor;
                     }
                     
                     /* Pagination */
@@ -457,22 +527,21 @@
                             margin-right: -16px;
                         }
                     
-                        .swiper-button-prev,
-                        .swiper-button-next {
+                        .carousel-nav.btn {
                             width: 32px;
                             height: 32px;
                         }
                         
-                        .swiper-button-prev:after,
-                        .swiper-button-next:after {
-                            font-size: 12px;
+                        .carousel-nav .ic {
+                            width: 12px;
+                            height: 12px;
                         }
                         
-                        .swiper-button-prev {
+                        .carousel-prev {
                             left: 5px;
                         }
                         
-                        .swiper-button-next {
+                        .carousel-next {
                             right: 5px;
                         }
                         
@@ -511,7 +580,7 @@
          * Debug funkce pro testování
          */
         debug: function() {
-            console.log('ProductSlider v2.3 Debug Info:');
+            console.log('ProductSlider v2.4 Debug Info:');
             console.log('Instances:', this.instances);
             this.instances.forEach((instance, index) => {
                 const swiper = instance.swiper;
