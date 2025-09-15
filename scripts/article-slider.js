@@ -626,17 +626,6 @@
                         right: -20px;
                     }
                     
-                    /* Pokud je kontejner omezený, posuň šipky dovnitř */
-                    @media (max-width: 1400px) {
-                        .article-slider-wrapper .carousel-prev {
-                            left: 10px;
-                        }
-                        
-                        .article-slider-wrapper .carousel-next {
-                            right: 10px;
-                        }
-                    }
-                    
                     /* Disabled stav */
                     .article-slider-wrapper .carousel-nav.disabled {
                         opacity: 0.35;
@@ -694,15 +683,7 @@
                     }
                     
                     /* Responzivní úpravy */
-                    @media (max-width: 768px) {
-                        .article-slider-wrapper .carousel-prev {
-                            left: 5px;
-                        }
-                        
-                        .article-slider-wrapper .carousel-next {
-                            right: 5px;
-                        }
-                        
+                    @media (max-width: 768px) {                        
                         .article-slider-active .swiper-pagination-bullet {
                             width: 6px;
                             height: 6px;
