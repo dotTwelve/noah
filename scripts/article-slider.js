@@ -643,7 +643,7 @@
                     
                     [id^="article-slider-"] .carousel-prev {
                         left: -20px;
-                        transform: translateY(-50%) translateX(50%);
+                        transform: translateY(-50%) translateX(-50%);
                     }
                     
                     [id^="article-slider-"] .carousel-next {
