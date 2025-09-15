@@ -1,9 +1,9 @@
 /**
  * Article Slider for NOAH Natural Products
  * Převádí seznam článků na interaktivní slider pomocí Swiper.js
- * Založeno na ProductSlider v2.2.0
+ * Založeno na ProductSlider v2.4.0
  * 
- * @version 6.2.0 - Přidána kontrola pro přeskočení inicializace na .page-site a .is-category stránkách
+ * @version 6.3.0 - Custom navigační šipky s SVG ikonami
  * @requires jQuery 3.4.1+
  * @requires Swiper 11+
  */
@@ -23,7 +23,9 @@
             allArticlesUrl: '/clanky-o-zdravi', // URL na všechny články
             swiperCDN: 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js',
             swiperCSS: 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css',
-            skipOnBodyClasses: ['page-site', 'is-category'] // Třídy body, kde se slider neinicializuje
+            skipOnBodyClasses: ['page-site', 'is-category'], // Třídy body, kde se slider neinicializuje
+            // Cesta k SVG ikonám - stejná jako v ProductSlider
+            svgIconsPath: '/images/icons/fa/solid.svg?1757317552'
         },
 
         // Sledování inicializovaných sliderů
@@ -126,6 +128,42 @@
         },
 
         /**
+         * Vytvoření custom navigačních šipek - stejné jako v ProductSlider
+         */
+        createCustomNavigation: function(sliderId) {
+            const prevButton = `
+                <a href="#${sliderId}" 
+                   class="carousel-nav carousel-prev btn fg ico-md sh-md ml-0 NoScroll bg-de swiper-button-prev-custom" 
+                   role="button" 
+                   rel="nofollow"
+                   aria-label="Předchozí">
+                    <svg class="ic ic-sm" aria-hidden="true">
+                        <use href="${this.config.svgIconsPath}#angle-left"></use>
+                    </svg>
+                    <span class="sr-only">Předchozí</span>
+                </a>
+            `;
+            
+            const nextButton = `
+                <a href="#${sliderId}" 
+                   class="carousel-nav carousel-next btn fg ico-md sh-md mr-0 NoScroll bg-de swiper-button-next-custom" 
+                   role="button" 
+                   rel="nofollow"
+                   aria-label="Další">
+                    <svg class="ic ic-sm" aria-hidden="true">
+                        <use href="${this.config.svgIconsPath}#angle-right"></use>
+                    </svg>
+                    <span class="sr-only">Další</span>
+                </a>
+            `;
+            
+            return {
+                prevButton: prevButton,
+                nextButton: nextButton
+            };
+        },
+
+        /**
          * Kontrola, zda jsou potřeba navigační šipky
          */
         checkNavigationNeeded: function(swiper) {
@@ -147,6 +185,27 @@
             }
             
             return needsNavigation;
+        },
+
+        /**
+         * Aktualizace stavu navigačních tlačítek
+         */
+        updateNavigationState: function(swiper) {
+            const $prevButton = $(swiper.navigation.prevEl);
+            const $nextButton = $(swiper.navigation.nextEl);
+            
+            // Aktualizuj disabled stav
+            if (swiper.isBeginning) {
+                $prevButton.addClass('disabled').attr('aria-disabled', 'true');
+            } else {
+                $prevButton.removeClass('disabled').attr('aria-disabled', 'false');
+            }
+            
+            if (swiper.isEnd) {
+                $nextButton.addClass('disabled').attr('aria-disabled', 'true');
+            } else {
+                $nextButton.removeClass('disabled').attr('aria-disabled', 'false');
+            }
         },
 
         /**
@@ -180,7 +239,7 @@
             
             // Přidej třídy
             $container.addClass('article-slider-active');
-            $wrapper.addClass('swiper swiper-initialized');
+            $wrapper.addClass('swiper swiper-initialized carousel');
             
             // Zpracuj každý článek
             $articles.each(function() {
@@ -236,9 +295,12 @@
             // Obal články do wrapper
             $articles.wrapAll('<div class="swiper-wrapper"></div>');
             
-            // Přidej navigaci
-            $wrapper.append('<div class="swiper-button-prev"></div>');
-            $wrapper.append('<div class="swiper-button-next"></div>');
+            // Vytvoř custom navigační šipky
+            const navigation = this.createCustomNavigation(sliderId);
+            
+            // Přidej navigaci do kontejneru
+            $wrapper.append(navigation.prevButton);
+            $wrapper.append(navigation.nextButton);
             
             // Přidej pagination
             $container.append('<div class="swiper-pagination"></div>');
@@ -269,9 +331,10 @@
                     speed: 600,
                     grabCursor: true,
                     
+                    // Navigace - použij custom tlačítka
                     navigation: {
-                        nextEl: '#' + sliderId + ' .swiper-button-next',
-                        prevEl: '#' + sliderId + ' .swiper-button-prev',
+                        nextEl: '#' + sliderId + ' .swiper-button-next-custom',
+                        prevEl: '#' + sliderId + ' .swiper-button-prev-custom',
                     },
                     
                     pagination: {
@@ -313,12 +376,34 @@
                                 this.update();
                             }
                             self.updatePagination(this);
-                            self.checkNavigationNeeded(this); // Kontrola navigace při inicializaci
+                            self.checkNavigationNeeded(this);
+                            self.updateNavigationState(this);
+                            
+                            // Přidej click handlery pro custom navigaci
+                            const $prevBtn = $(this.navigation.prevEl);
+                            const $nextBtn = $(this.navigation.nextEl);
+                            const swiper = this;
+                            
+                            $prevBtn.on('click', function(e) {
+                                e.preventDefault();
+                                if (!$(this).hasClass('disabled')) {
+                                    swiper.slidePrev();
+                                }
+                            });
+                            
+                            $nextBtn.on('click', function(e) {
+                                e.preventDefault();
+                                if (!$(this).hasClass('disabled')) {
+                                    swiper.slideNext();
+                                }
+                            });
+                            
                             console.log('ArticleSlider: Slider ' + index + ' inicializován s ' + this.slides.length + ' články');
                         },
                         
                         slideChange: function() {
                             self.updatePaginationActive(this);
+                            self.updateNavigationState(this);
                             self.handleLazyLoad(this);
                         },
                         
@@ -329,13 +414,14 @@
                             }
                             setTimeout(() => {
                                 self.updatePagination(this);
-                                self.checkNavigationNeeded(this); // Kontrola navigace při změně breakpointu
+                                self.checkNavigationNeeded(this);
+                                self.updateNavigationState(this);
                             }, 100);
                         },
                         
                         resize: function() {
-                            // Kontrola navigace při změně velikosti okna
                             self.checkNavigationNeeded(this);
+                            self.updateNavigationState(this);
                         }
                     }
                 };
@@ -547,50 +633,16 @@
                         margin: 0 auto !important;
                     }
                     
-                    /* NAVIGAČNÍ ŠIPKY - STEJNÉ JAKO ProductSlider */
-                    .article-slider-active .swiper-button-prev,
-                    .article-slider-active .swiper-button-next {
-                        position: absolute;
-                        top: 40%;
-                        width: 40px;
-                        height: 40px;
-                        margin-top: -20px;
-                        z-index: 10;
-                        cursor: pointer;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        background: white;
-                        border-radius: 50%;
-                        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-                        transition: all 0.3s ease;
-                    }
-                    
-                    .article-slider-active .swiper-button-prev {
-                        left: 10px;
-                    }
-                    
-                    .article-slider-active .swiper-button-next {
-                        right: 10px;
-                    }
-                    
-                    .article-slider-active .swiper-button-prev:after,
-                    .article-slider-active .swiper-button-next:after {
-                        font-size: 16px;
-                        color: #333;
-                        font-weight: bold;
-                    }
-                    
-                    .article-slider-active .swiper-button-prev:hover,
-                    .article-slider-active .swiper-button-next:hover {
-                        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-                        transform: scale(1.1);
-                    }
-                    
-                    .article-slider-active .swiper-button-disabled {
+                    /* Disabled stav pro navigační tlačítka */
+                    .carousel-nav.disabled {
                         opacity: 0.35;
-                        cursor: auto;
+                        cursor: not-allowed;
                         pointer-events: none;
+                    }
+                    
+                    /* Hover efekt pro navigační tlačítka */
+                    .carousel-nav:not(.disabled):hover {
+                        transform: translateY(-50%) scale(1.1);
                     }
                     
                     /* PAGINATION - stejná jako ProductSlider */
@@ -628,28 +680,6 @@
                     
                     /* RESPONZIVNÍ - MOBILY */
                     @media (max-width: 768px) {
-                        .article-slider-active .swiper {
-                        }
-                    
-                        .article-slider-active .swiper-button-prev,
-                        .article-slider-active .swiper-button-next {
-                            width: 32px;
-                            height: 32px;
-                        }
-                        
-                        .article-slider-active .swiper-button-prev:after,
-                        .article-slider-active .swiper-button-next:after {
-                            font-size: 12px;
-                        }
-                        
-                        .article-slider-active .swiper-button-prev {
-                            left: 5px;
-                        }
-                        
-                        .article-slider-active .swiper-button-next {
-                            right: 5px;
-                        }
-                        
                         .article-slider-active .swiper-pagination-bullet {
                             width: 6px;
                             height: 6px;
@@ -658,6 +688,12 @@
                         
                         .article-slider-active .swiper-pagination-bullet-active {
                             width: 20px;
+                        }
+                    }
+                    
+                    @media (max-width: 1200px) {
+                        .carousel-nav {
+                            opacity: 1;
                         }
                     }
                 </style>
@@ -685,7 +721,7 @@
          * Debug funkce
          */
         debug: function() {
-            console.log('ArticleSlider v6.2 Debug:');
+            console.log('ArticleSlider v6.3 Debug:');
             console.log('Body classes:', $('body').attr('class'));
             console.log('Should skip page:', this.shouldSkipPage());
             console.log('Instances:', this.instances);
