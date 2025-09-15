@@ -613,7 +613,7 @@
                     /* Navigační šipky - specifické pro article slider */
                     .article-slider-wrapper .carousel-nav {
                         position: absolute;
-                        top: 50%;
+                        top: 100px; /* Polovina výšky obrázku (202px / 2) */
                         transform: translateY(-50%);
                         z-index: 10;
                     }
@@ -683,7 +683,10 @@
                     }
                     
                     /* Responzivní úpravy */
-                    @media (max-width: 768px) {                        
+                    @media (max-width: 768px) {
+                        .article-slider-wrapper .carousel-nav {
+                            top: 110px; /* Mírně upraveno pro řádkové zobrazení */
+                        }
                         .article-slider-active .swiper-pagination-bullet {
                             width: 6px;
                             height: 6px;
