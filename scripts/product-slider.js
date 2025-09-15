@@ -150,7 +150,7 @@
                     // Základní nastavení - začni s 2 produkty na mobilu
                     slidesPerView: 2,
                     slidesPerGroup: 2,
-                    spaceBetween: 10,
+                    spaceBetween: 0,
                     
                     // Obecné nastavení
                     watchOverflow: true,
@@ -176,17 +176,17 @@
                         768: {
                             slidesPerView: 3,
                             slidesPerGroup: 3,
-                            spaceBetween: 15
+                            spaceBetween: 0
                         },
                         1024: {
                             slidesPerView: 4,
                             slidesPerGroup: 4,
-                            spaceBetween: 15
+                            spaceBetween: 0
                         },
                         1200: {
                             slidesPerView: 5,
                             slidesPerGroup: 5,
-                            spaceBetween: 15
+                            spaceBetween: 0
                         }
                     },
                     
