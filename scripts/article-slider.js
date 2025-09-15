@@ -120,16 +120,20 @@
                 const $wrapper = $container.find(self.config.wrapperSelector);
                 const totalItems = $wrapper.find(self.config.itemSelector).length;
                 
-                // Zjisti kolik článků se vejde
+                // Zjisti kolik článků se vejde podle aktuální šířky okna
                 const windowWidth = window.innerWidth;
-                let expectedSlidesPerView = 1; // xs/sm/md
+                let expectedSlidesPerView = 1; // xs
                 
                 if (windowWidth >= 1502) {
-                    expectedSlidesPerView = 5; // xxl
+                    expectedSlidesPerView = 4; // xxl
                 } else if (windowWidth >= 1204) {
-                    expectedSlidesPerView = 4; // xl
+                    expectedSlidesPerView = 3; // xl
                 } else if (windowWidth >= 992) {
                     expectedSlidesPerView = 3; // lg
+                } else if (windowWidth >= 768) {
+                    expectedSlidesPerView = 2; // md
+                } else if (windowWidth >= 576) {
+                    expectedSlidesPerView = 2; // sm
                 }
                 
                 const hasSlider = $wrapper.hasClass('swiper-initialized');
@@ -213,14 +217,18 @@
             
             // Zjisti kolik článků se vejde podle aktuální šířky okna
             const windowWidth = window.innerWidth;
-            let expectedSlidesPerView = 1; // výchozí pro xs/sm/md
+            let expectedSlidesPerView = 1; // výchozí pro xs
             
             if (windowWidth >= 1502) {
-                expectedSlidesPerView = 5; // xxl
+                expectedSlidesPerView = 4; // xxl
             } else if (windowWidth >= 1204) {
-                expectedSlidesPerView = 4; // xl
+                expectedSlidesPerView = 3; // xl
             } else if (windowWidth >= 992) {
                 expectedSlidesPerView = 3; // lg
+            } else if (windowWidth >= 768) {
+                expectedSlidesPerView = 2; // md
+            } else if (windowWidth >= 576) {
+                expectedSlidesPerView = 2; // sm
             }
             
             // Pokud se všechny články vejdou, neinicializuj slider
@@ -367,13 +375,13 @@
                     
                     // Responzivní breakpointy podle Bootstrap grid
                     breakpoints: {
-                        576: {  // sm - stále 1 článek
-                            slidesPerView: 1,
+                        576: {  // sm - 2 články
+                            slidesPerView: 2,
                             slidesPerGroup: 1,
                             spaceBetween: 8
                         },
-                        768: {  // md - stále 1 článek
-                            slidesPerView: 1,
+                        768: {  // md - 2 články
+                            slidesPerView: 2,
                             slidesPerGroup: 1,
                             spaceBetween: 16
                         },
@@ -382,13 +390,13 @@
                             slidesPerGroup: 1,
                             spaceBetween: 16
                         },
-                        1204: { // xl - 4 články
-                            slidesPerView: 4,
+                        1204: { // xl - 3 články
+                            slidesPerView: 3,
                             slidesPerGroup: 1,
                             spaceBetween: 16
                         },
-                        1502: { // xxl - 5 článků
-                            slidesPerView: 5,
+                        1502: { // xxl - 4 články
+                            slidesPerView: 4,
                             slidesPerGroup: 1,
                             spaceBetween: 16
                         }
@@ -415,11 +423,15 @@
                             let expectedSlidesPerView = 1;
                             
                             if (windowWidth >= 1502) {
-                                expectedSlidesPerView = 5;
-                            } else if (windowWidth >= 1204) {
                                 expectedSlidesPerView = 4;
+                            } else if (windowWidth >= 1204) {
+                                expectedSlidesPerView = 3;
                             } else if (windowWidth >= 992) {
                                 expectedSlidesPerView = 3;
+                            } else if (windowWidth >= 768) {
+                                expectedSlidesPerView = 2;
+                            } else if (windowWidth >= 576) {
+                                expectedSlidesPerView = 2;
                             }
                             
                             // Pokud se teď všechny články vejdou, skryj navigaci
@@ -609,7 +621,7 @@
                     /* Navigační šipky */
                     .article-slider-wrapper .carousel-nav {
                         position: absolute;
-                        top: 100px;
+                        top: 50%;
                         transform: translateY(-50%);
                         z-index: 10;
                         transition: all 0.3s;
@@ -670,18 +682,6 @@
                     
                     /* Responzivní úpravy */
                     @media (max-width: 768px) {
-                        .article-slider-wrapper .carousel-nav {
-                            top: 110px;
-                        }
-                        
-                        .article-slider-wrapper .carousel-prev {
-                            left: -15px;
-                        }
-                        
-                        .article-slider-wrapper .carousel-next {
-                            right: -15px;
-                        }
-                        
                         .article-slider-active .swiper-pagination-bullet {
                             width: 6px;
                             height: 6px;
