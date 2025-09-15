@@ -642,11 +642,11 @@
                     }
                     
                     [id^="article-slider-"] .carousel-prev {
-                        left: 15px;
+                        left: 0;
                     }
                     
                     [id^="article-slider-"] .carousel-next {
-                        right: 15px;
+                        right: 0;
                     }
                     
                     /* Disabled stav pro navigační tlačítka */
