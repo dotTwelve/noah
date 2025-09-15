@@ -357,10 +357,10 @@
                     
                     on: {
                         init: function() {
-                            /*if (this.params.slidesPerGroup !== this.params.slidesPerView) {
+                            if (this.params.slidesPerGroup !== this.params.slidesPerView) {
                                 this.params.slidesPerGroup = this.params.slidesPerView;
                                 this.update();
-                            }*/
+                            }
                             self.updatePagination(this);
                             self.checkNavigationNeeded(this);
                             self.updateNavigationState(this);
@@ -393,10 +393,10 @@
                         },
                         
                         breakpoint: function() {
-                            /*if (this.params.slidesPerGroup !== this.params.slidesPerView) {
+                            if (this.params.slidesPerGroup !== this.params.slidesPerView) {
                                 this.params.slidesPerGroup = this.params.slidesPerView;
                                 this.update();
-                            }*/
+                            }
                             setTimeout(() => {
                                 self.updatePagination(this);
                                 self.checkNavigationNeeded(this);
