@@ -231,85 +231,6 @@
                 expectedSlidesPerView = 2; // sm
             }
             
-            // Pokud se všechny články vejdou, neinicializuj slider
-            if (totalItems <= expectedSlidesPerView) {
-                console.log('ArticleSlider: Slider ' + index + ' - všech ' + totalItems + ' článků se vejde na obrazovku, skrývám navigaci');
-                
-                // Vyčisti HTML
-                $hrs.remove();
-                const $nextButton = $container.find(this.config.nextButtonSelector);
-                if ($nextButton.length) {
-                    $nextButton.remove();
-                }
-                
-                // Zobraz články
-                $articles.removeClass('hidden').show();
-                
-                // Zpracuj články stejně jako u slideru, ale bez slider funkcionalit
-                $articles.each(function() {
-                    const $article = $(this);
-                    
-                    $article
-                        .removeClass('anim-i anim-fade-up anim-y SNIitem')
-                        .removeClass(function(index, className) {
-                            return (className.match(/anim-delay-\d+/g) || []).join(' ');
-                        });
-                    
-                    const $description = $article.find('.text p');
-                    if ($description.length) {
-                        const originalText = $description.text();
-                        const truncatedText = self.truncateText(originalText, self.config.descriptionMaxLength);
-                        
-                        $description
-                            .attr('data-original-text', originalText)
-                            .attr('title', originalText)
-                            .text(truncatedText);
-                    }
-                    
-                    let articleHref = '';
-                    const $figureLink = $article.find('figure[data-href]');
-                    const $headingLink = $article.find('h3 a[href], h2 a[href]');
-                    
-                    if ($figureLink.length) {
-                        articleHref = $figureLink.attr('data-href');
-                    } else if ($headingLink.length) {
-                        articleHref = $headingLink.attr('href');
-                    }
-                    
-                    const $textWrapper = $article.find('.gapy-3');
-                    if ($textWrapper.length && articleHref && !$textWrapper.find('.article-button-wrapper').length) {
-                        const $buttonWrapper = $('<div class="article-button-wrapper"></div>');
-                        const $discoverBtn = $('<a>')
-                            .attr('href', articleHref)
-                            .attr('class', 'btn fg sh-md ou bg-se fs-lg-3 fs-1 ca-c')
-                            .text('Celý článek');
-                        
-                        $buttonWrapper.append($discoverBtn);
-                        $textWrapper.append($buttonWrapper);
-                    }
-                });
-                
-                // Přidej třídu pro styling
-                $container.addClass('article-processed-no-slider');
-                
-                // Přidej tlačítko všechny články
-                if (!$container.find('.all-articles-wrapper').length) {
-                    const $allArticlesWrapper = $('<div class="all-articles-wrapper"></div>');
-                    const $allArticlesBtn = $('<a>')
-                        .attr('href', this.config.allArticlesUrl)
-                        .attr('class', 'btn fg sh-md fw-b bg-su fs-ms-1 fs-md-1 fs-xl-3 fs-lg-3 ff-adv fs-1 ca-c td-n mt-4')
-                        .html('Všechny články →');
-                    
-                    $allArticlesWrapper.append($allArticlesBtn);
-                    $container.append($allArticlesWrapper);
-                }
-                
-                // Přidej styly
-                this.addStyles();
-                
-                return;
-            }
-            
             // Vyčisti HTML
             $hrs.remove();
             const $nextButton = $container.find(this.config.nextButtonSelector);
@@ -471,10 +392,25 @@
                     // Události
                     on: {
                         init: function() {
-                            self.updateNavigationVisibility(this);
+                            // Kontrola, jestli jsou šipky a pagination potřeba
+                            const needsNavigation = totalItems > this.params.slidesPerView;
+                            
+                            if (!needsNavigation) {
+                                // Skryj navigaci když se všechny články vejdou
+                                $(this.navigation.prevEl).hide();
+                                $(this.navigation.nextEl).hide();
+                                $(this.pagination.el).hide();
+                                this.allowTouchMove = false;
+                                this.allowSlideNext = false;
+                                this.allowSlidePrev = false;
+                            } else {
+                                self.updateNavigationVisibility(this);
+                            }
+                            
                             console.log('ArticleSlider: Slider ' + index + ' inicializován');
                             console.log('- Celkem článků: ' + totalItems);
                             console.log('- Zobrazeno článků: ' + this.params.slidesPerView);
+                            console.log('- Navigace: ' + (needsNavigation ? 'zobrazena' : 'skryta'));
                             console.log('- Loop mode: ' + (this.params.loop ? 'zapnuto' : 'vypnuto'));
                             console.log('- Aktuální breakpoint: ' + window.innerWidth + 'px');
                         },
@@ -700,6 +636,96 @@
                     /* Hover efekt */
                     .article-slider-wrapper .carousel-nav:hover {
                         transform: translateY(-50%) scale(1.1);
+                    }
+                    
+                    /* Styly pro články bez slideru (když se všechny vejdou) */
+                    .article-processed-no-slider .artcl-wrap {
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 16px;
+                    }
+                    
+                    .article-processed-no-slider article {
+                        flex: 0 0 100%; /* xs - 1 článek */
+                        display: flex !important;
+                        flex-direction: column;
+                        gap: 20px;
+                        background: #f7f7ef;
+                        padding: 0 0 20px 0;
+                        border-radius: 8px;
+                        overflow: hidden;
+                    }
+                    
+                    @media (min-width: 576px) {
+                        .article-processed-no-slider article {
+                            flex: 0 0 calc(50% - 8px); /* sm - 2 články */
+                        }
+                    }
+                    
+                    @media (min-width: 768px) {
+                        .article-processed-no-slider article {
+                            flex: 0 0 calc(50% - 8px); /* md - 2 články */
+                        }
+                    }
+                    
+                    @media (min-width: 992px) {
+                        .article-processed-no-slider article {
+                            flex: 0 0 calc(33.333% - 11px); /* lg - 3 články */
+                        }
+                    }
+                    
+                    @media (min-width: 1204px) {
+                        .article-processed-no-slider article {
+                            flex: 0 0 calc(33.333% - 11px); /* xl - 3 články */
+                        }
+                    }
+                    
+                    @media (min-width: 1502px) {
+                        .article-processed-no-slider article {
+                            flex: 0 0 calc(25% - 12px); /* xxl - 4 články */
+                        }
+                    }
+                    
+                    .article-processed-no-slider article:not(:has(figure)) {
+                        padding: 20px;
+                        justify-content: center;
+                    }
+                    
+                    .article-processed-no-slider article figure {
+                        margin: 0;
+                        padding: 0;
+                        flex-shrink: 0;
+                        overflow: hidden;
+                        width: 100%;
+                    }
+                    
+                    .article-processed-no-slider article figure img {
+                        width: 100%;
+                        height: auto;
+                        object-fit: cover;
+                        display: block;
+                    }
+                    
+                    .article-processed-no-slider article .gapy-3 {
+                        flex: 1;
+                        display: flex;
+                        flex-direction: column;
+                        gap: 12px;
+                        padding: 0 20px;
+                        width: 100%;
+                    }
+                    
+                    .article-processed-no-slider article .text {
+                        overflow: hidden;
+                        display: -webkit-box;
+                        -webkit-line-clamp: 3;
+                        -webkit-box-orient: vertical;
+                    }
+                    
+                    .article-processed-no-slider .article-button-wrapper {
+                        margin-top: auto;
+                        padding-top: 15px;
+                        width: 100%;
                     }
                     
                     /* Styly pro články bez slideru (když se všechny vejdou) */
