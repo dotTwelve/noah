@@ -248,7 +248,7 @@
                 const $allArticlesWrapper = $('<div class="all-articles-wrapper"></div>');
                 const $allArticlesBtn = $('<a>')
                     .attr('href', this.config.allArticlesUrl)
-                    .attr('class', 'btn fg sh-md fw-b bg-su fs-ms-1 fs-md-1 fs-xl-3 fs-lg-3 ff-adv fs-1 ca-c td-n')
+                    .attr('class', 'btn fg sh-md fw-b bg-su fs-ms-1 fs-md-1 fs-xl-3 fs-lg-3 ff-adv fs-1 ca-c td-n mt-2')
                     .html('Všechny články →'); // SE ŠIPKOU
                 
                 $allArticlesWrapper.append($allArticlesBtn);
@@ -539,6 +539,7 @@
                     /* CENTROVÁNÍ TLAČÍTKA VŠECHNY ČLÁNKY */
                     .article-slider-active + .all-articles-wrapper,
                     .all-articles-wrapper {
+                        display: flex;
                     }
                     
                     .all-articles-wrapper .btn-to-cart {
