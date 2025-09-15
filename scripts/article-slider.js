@@ -225,8 +225,7 @@
                     const $buttonWrapper = $('<div class="article-button-wrapper" style="text-align: center; width: 100%;"></div>');
                     const $discoverBtn = $('<a>')
                         .attr('href', articleHref)
-                        .attr('class', 'btn fg bg-se ca-l btn-to-cart sh-md ff-adv')
-                        .attr('style', 'display: inline-block; margin: 0 auto;')
+                        .attr('class', 'btn fg sh-md ou bg-se fs-lg-3 fs-1 ca-c')
                         .text('Číst'); // BEZ ŠIPKY
                     
                     $buttonWrapper.append($discoverBtn);
@@ -246,11 +245,10 @@
             
             // PŘIDEJ TLAČÍTKO "VŠECHNY ČLÁNKY" POD SLIDER
             if (!$container.find('.all-articles-wrapper').length) {
-                const $allArticlesWrapper = $('<div class="all-articles-wrapper" style="text-align: center; width: 100%;"></div>');
+                const $allArticlesWrapper = $('<div class="all-articles-wrapper"></div>');
                 const $allArticlesBtn = $('<a>')
                     .attr('href', this.config.allArticlesUrl)
-                    .attr('class', 'btn fg bg-se ca-l btn-to-cart sh-md ff-adv')
-                    .attr('style', 'display: inline-block; margin: 0 auto;')
+                    .attr('class', 'btn fg sh-md fw-b bg-su fs-ms-1 fs-md-1 fs-xl-3 fs-lg-3 ff-adv fs-1 ca-l td-n')
                     .html('Všechny články →'); // SE ŠIPKOU
                 
                 $allArticlesWrapper.append($allArticlesBtn);
