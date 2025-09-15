@@ -437,25 +437,7 @@
                     .slider-active .swiper-slide * {
                         visibility: visible !important;
                     }
-                    
-                    /* Custom navigační šipky */
-                    .carousel-nav {
-                        position: absolute;
-                        top: 40%;
-                        transform: translateY(-50%);
-                        z-index: 10;
-                        transition: all 0.3s ease;
-                        text-decoration: none;
-                    }
-                    
-                    .carousel-prev {
-                        left: 10px;
-                    }
-                    
-                    .carousel-next {
-                        right: 10px;
-                    }
-                    
+                           
                     /* Disabled stav pro navigační tlačítka */
                     .carousel-nav.disabled {
                         opacity: 0.35;
@@ -466,25 +448,6 @@
                     /* Hover efekt */
                     .carousel-nav:not(.disabled):hover {
                         transform: translateY(-50%) scale(1.1);
-                    }
-                    
-                    /* Pokud nejsou definované třídy btn, fg, ico-md, sh-md, bg-de */
-                    .carousel-nav.btn {
-                        display: inline-flex;
-                        align-items: center;
-                        justify-content: center;
-                        padding: 0.5rem;
-                        background-color: white;
-                        border-radius: 50%;
-                        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-                        width: 40px;
-                        height: 40px;
-                    }
-                    
-                    .carousel-nav .ic {
-                        width: 16px;
-                        height: 16px;
-                        fill: currentColor;
                     }
                     
                     /* Pagination */
