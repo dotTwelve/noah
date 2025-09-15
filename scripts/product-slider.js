@@ -435,7 +435,7 @@
                         top: 50%;
                         transform: translateY(-50%);
                         z-index: 10;
-                        transition: opacity 0.3s ease, transform 0.3s ease;
+                        transition: all 0.3s;
                         opacity: 0.5;
                     }
                     
@@ -447,22 +447,21 @@
                         right: -20px;
                     }
                     
-                    /* Hover efekt na wrapperu - zobrazí šipky */
+                    /* Hover efekt na celém wrapperu - zobrazí šipky */
                     .product-slider-wrapper:hover .carousel-nav {
-                        opacity: 1 !important;
+                        opacity: 1;
                     }
                     
-                    /* Hover efekt přímo na šipce */
+                    /* Hover efekt na samotné šipce */
                     .product-slider-wrapper .carousel-nav:hover {
                         transform: translateY(-50%) scale(1.1);
-                        opacity: 1 !important;
+                        opacity: 1;
                     }
                     
-                    /* Touch zařízení a malé obrazovky - vždy plná opacita */
-                    @media (hover: none) and (pointer: coarse),
-                           (max-width: 1024px) {
+                    /* Touch zařízení - vždy plná opacita */
+                    @media (hover: none) and (pointer: coarse) {
                         .product-slider-wrapper .carousel-nav {
-                            opacity: 1 !important;
+                            opacity: 1;
                         }
                     }
                     
