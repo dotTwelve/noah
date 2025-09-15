@@ -173,8 +173,7 @@
                         el: $container.find('.swiper-pagination')[0],
                         clickable: true,
                         type: 'bullets',
-                        dynamicBullets: true, // Dynamické bullets pro lepší zobrazení
-                        dynamicMainBullets: 3, // Počet hlavních kuliček
+                        dynamicBullets: false, // Vypnuto pro jasné zobrazení jedné aktivní kuličky
                     },
                     
                     // Responzivní breakpointy
@@ -338,7 +337,7 @@
                         display: inline-block;
                         border-radius: 50%;
                         background: #ccc;
-                        opacity: 0.4;
+                        opacity: 1;
                         margin: 0 4px;
                         cursor: pointer;
                         transition: all 0.3s;
@@ -347,31 +346,14 @@
                     }
                     
                     .slider-active .swiper-pagination-bullet:hover {
-                        opacity: 0.7;
+                        background: #999;
+                        transform: scale(1.1);
                     }
                     
                     .slider-active .swiper-pagination-bullet-active {
                         background: #27ae60;
-                        opacity: 1;
-                        transform: scale(1.2);
-                    }
-                    
-                    /* Dynamické bullets */
-                    .slider-active .swiper-pagination-bullet-active-main {
-                        background: #27ae60;
-                        opacity: 1;
-                    }
-                    
-                    .slider-active .swiper-pagination-bullet-active-prev,
-                    .slider-active .swiper-pagination-bullet-active-prev-prev {
-                        opacity: 0.6;
-                        transform: scale(0.9);
-                    }
-                    
-                    .slider-active .swiper-pagination-bullet-active-next,
-                    .slider-active .swiper-pagination-bullet-active-next-next {
-                        opacity: 0.6;
-                        transform: scale(0.9);
+                        width: 24px;
+                        border-radius: 4px;
                     }
                     
                     /* Responzivní úpravy */
@@ -380,6 +362,10 @@
                             width: 6px;
                             height: 6px;
                             margin: 0 3px;
+                        }
+                        
+                        .slider-active .swiper-pagination-bullet-active {
+                            width: 20px;
                         }
                         
                         .product-slider-wrapper .carousel-prev {
