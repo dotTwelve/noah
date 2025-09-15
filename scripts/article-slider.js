@@ -356,59 +356,64 @@
                     },
                     
                     on: {
-                        init: function() {
-                            if (this.params.slidesPerGroup !== this.params.slidesPerView) {
-                                this.params.slidesPerGroup = this.params.slidesPerView;
-                                this.update();
-                            }
-                            self.updatePagination(this);
-                            self.checkNavigationNeeded(this);
-                            self.updateNavigationState(this);
-                            
-                            const $prevBtn = $(this.navigation.prevEl);
-                            const $nextBtn = $(this.navigation.nextEl);
-                            const swiper = this;
-                            
-                            $prevBtn.on('click', function(e) {
-                                e.preventDefault();
-                                if (!$(this).hasClass('disabled')) {
-                                    swiper.slidePrev();
-                                }
-                            });
-                            
-                            $nextBtn.on('click', function(e) {
-                                e.preventDefault();
-                                if (!$(this).hasClass('disabled')) {
-                                    swiper.slideNext();
-                                }
-                            });
-                            
-                            console.log('ArticleSlider: Slider ' + index + ' inicializován s ' + this.slides.length + ' články');
-                        },
-                        
-                        slideChange: function() {
-                            self.updatePaginationActive(this);
-                            self.updateNavigationState(this);
-                            self.handleLazyLoad(this);
-                        },
-                        
-                        breakpoint: function() {
-                            if (this.params.slidesPerGroup !== this.params.slidesPerView) {
-                                this.params.slidesPerGroup = this.params.slidesPerView;
-                                this.update();
-                            }
-                            setTimeout(() => {
-                                self.updatePagination(this);
-                                self.checkNavigationNeeded(this);
-                                self.updateNavigationState(this);
-                            }, 100);
-                        },
-                        
-                        resize: function() {
-                            self.checkNavigationNeeded(this);
-                            self.updateNavigationState(this);
-                        }
-                    }
+    init: function() {
+        // ODSTRAŇTE tyto řádky:
+        // if (this.params.slidesPerGroup !== this.params.slidesPerView) {
+        //     this.params.slidesPerGroup = this.params.slidesPerView;
+        //     this.update();
+        // }
+        
+        self.updatePagination(this);
+        self.checkNavigationNeeded(this);
+        self.updateNavigationState(this);
+        
+        const $prevBtn = $(this.navigation.prevEl);
+        const $nextBtn = $(this.navigation.nextEl);
+        const swiper = this;
+        
+        $prevBtn.off('click').on('click', function(e) {
+            e.preventDefault();
+            if (!$(this).hasClass('disabled')) {
+                swiper.slidePrev();
+            }
+        });
+        
+        $nextBtn.off('click').on('click', function(e) {
+            e.preventDefault();
+            if (!$(this).hasClass('disabled')) {
+                swiper.slideNext();
+            }
+        });
+        
+        console.log('ArticleSlider: Slider ' + index + ' inicializován s ' + this.slides.length + ' články');
+    },
+    
+    slideChange: function() {
+        console.log('Current slidesPerView:', this.params.slidesPerView, 'slidesPerGroup:', this.params.slidesPerGroup);
+        self.updatePaginationActive(this);
+        self.updateNavigationState(this);
+        self.handleLazyLoad(this);
+    },
+    
+    breakpoint: function() {
+        // ODSTRAŇTE tyto řádky:
+        // if (this.params.slidesPerGroup !== this.params.slidesPerView) {
+        //     this.params.slidesPerGroup = this.params.slidesPerView;
+        //     this.update();
+        // }
+        
+        setTimeout(() => {
+            self.updatePagination(this);
+            self.checkNavigationNeeded(this);
+            self.updateNavigationState(this);
+        }, 100);
+    },
+    
+    resize: function() {
+        self.checkNavigationNeeded(this);
+        self.updateNavigationState(this);
+    }
+}
                 };
                 
                 const swiperInstance = new Swiper('#' + sliderId, swiperConfig);
