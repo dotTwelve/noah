@@ -594,6 +594,13 @@
                         display: block;
                     }
                     
+                    /* Úprava pro nadpis článku */
+                    .article-slider-active article h2,
+                    .article-slider-active article h3 {
+                        padding: 0 20px;
+                        margin: 0;
+                    }
+                    
                     .article-slider-active article .gapy-3 {
                         flex: 1;
                         display: flex;
@@ -610,6 +617,21 @@
                         -webkit-box-orient: vertical;
                     }
                     
+                    /* Přidat boční padding pro celý slider, aby šipky nezasahovaly */
+                    .article-slider-wrapper {
+                        position: relative;
+                        padding: 0 30px; /* Prostor pro šipky */
+                    }
+                    
+                    /* Upravit pozici šipek */
+                    .article-slider-wrapper .carousel-prev {
+                        left: 0; /* Změněno z -20px */
+                    }
+                    
+                    .article-slider-wrapper .carousel-next {
+                        right: 0; /* Změněno z -20px */
+                    }
+                    
                     .article-slider-active .article-button-wrapper {
                         margin-top: auto; /* Přisadit tlačítko ke spodní části */
                         padding-top: 15px;
@@ -622,7 +644,7 @@
                         top: 50%;
                         transform: translateY(-50%);
                         z-index: 10;
-                        transition: all 0.3s;
+                        transition: opacity 0.3s ease, transform 0.3s ease;
                         opacity: 0.5;
                     }
                     
@@ -632,6 +654,26 @@
                     
                     .article-slider-wrapper .carousel-next {
                         right: -20px;
+                    }
+                    
+                    /* Hover efekt na celém wrapperu - zobrazí šipky */
+                    .article-slider-wrapper:hover .carousel-nav {
+                        opacity: 1 !important;
+                    }
+                    
+                    /* Hover efekt na samotné šipce */
+                    .article-slider-wrapper .carousel-nav:hover {
+                        transform: translateY(-50%) scale(1.1);
+                        opacity: 1 !important;
+                    }
+                    
+                    /* Touch zařízení a malé obrazovky - vždy plná opacita */
+                    @media (hover: none) and (pointer: coarse),
+                           (max-width: 1024px) {
+                        .article-slider-wrapper .carousel-nav {
+                            opacity: 1 !important;
+                        }
+                    }20px;
                     }
                     
                     /* Hover efekt na celém wrapperu - zobrazí šipky */
