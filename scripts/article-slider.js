@@ -248,7 +248,7 @@
                 const $allArticlesWrapper = $('<div class="all-articles-wrapper"></div>');
                 const $allArticlesBtn = $('<a>')
                     .attr('href', this.config.allArticlesUrl)
-                    .attr('class', 'btn fg sh-md fw-b bg-su fs-ms-1 fs-md-1 fs-xl-3 fs-lg-3 ff-adv fs-1 ca-l td-n')
+                    .attr('class', 'btn fg sh-md fw-b bg-su fs-ms-1 fs-md-1 fs-xl-3 fs-lg-3 ff-adv fs-1 ca-c td-n')
                     .html('Všechny články →'); // SE ŠIPKOU
                 
                 $allArticlesWrapper.append($allArticlesBtn);
