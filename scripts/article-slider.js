@@ -3,7 +3,7 @@
  * Převádí seznam článků na interaktivní slider pomocí Swiper.js
  * Založeno na ProductSlider v2.4.0
  * 
- * @version 6.3.0 - Custom navigační šipky s SVG ikonami
+ * @version 6.4.0 - Vylepšené pozicování navigačních šipek mimo overflow kontejner
  * @requires jQuery 3.4.1+
  * @requires Swiper 11+
  */
@@ -19,12 +19,11 @@
             itemSelector: 'article',
             hrSelector: 'hr',
             nextButtonSelector: '.SNInextButton',
-            descriptionMaxLength: 150, // Maximální počet znaků v popisu
-            allArticlesUrl: '/clanky-o-zdravi', // URL na všechny články
+            descriptionMaxLength: 150,
+            allArticlesUrl: '/clanky-o-zdravi',
             swiperCDN: 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js',
             swiperCSS: 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css',
-            skipOnBodyClasses: ['page-site', 'is-category'], // Třídy body, kde se slider neinicializuje
-            // Cesta k SVG ikonám - stejná jako v ProductSlider
+            skipOnBodyClasses: ['page-site', 'is-category'],
             svgIconsPath: '/images/icons/fa/solid.svg?1757317552'
         },
 
@@ -37,7 +36,6 @@
         shouldSkipPage: function() {
             const $body = $('body');
             
-            // Kontrola, zda má body některou z tříd pro přeskočení
             for (let className of this.config.skipOnBodyClasses) {
                 if ($body.hasClass(className)) {
                     console.log('ArticleSlider: Přeskakuji inicializaci - nalezena třída body.' + className);
@@ -54,7 +52,6 @@
         truncateText: function(text, maxLength) {
             if (text.length <= maxLength) return text;
             
-            // Najdi poslední mezeru před limitem
             const truncated = text.substr(0, maxLength);
             const lastSpace = truncated.lastIndexOf(' ');
             
@@ -75,7 +72,6 @@
                 return;
             }
 
-            // Kontrola, zda má být slider na této stránce přeskočen
             if (this.shouldSkipPage()) {
                 return;
             }
@@ -128,7 +124,7 @@
         },
 
         /**
-         * Vytvoření custom navigačních šipek - stejné jako v ProductSlider
+         * Vytvoření custom navigačních šipek
          */
         createCustomNavigation: function(sliderId) {
             const prevButton = `
@@ -170,7 +166,6 @@
             const totalSlides = swiper.slides.length;
             const slidesPerView = Math.floor(swiper.params.slidesPerView);
             
-            // Skryj/zobraz navigaci podle potřeby
             const needsNavigation = totalSlides > slidesPerView;
             
             const $prevButton = $(swiper.navigation.prevEl);
@@ -194,7 +189,6 @@
             const $prevButton = $(swiper.navigation.prevEl);
             const $nextButton = $(swiper.navigation.nextEl);
             
-            // Aktualizuj disabled stav
             if (swiper.isBeginning) {
                 $prevButton.addClass('disabled').attr('aria-disabled', 'true');
             } else {
@@ -245,7 +239,6 @@
             $articles.each(function() {
                 const $article = $(this);
                 
-                // Přidej swiper třídu a odstraň animační třídy
                 $article
                     .addClass('swiper-slide')
                     .removeClass('anim-i anim-fade-up anim-y SNIitem')
@@ -253,20 +246,17 @@
                         return (className.match(/anim-delay-\d+/g) || []).join(' ');
                     });
                 
-                // Zkrať popis článku
                 const $description = $article.find('.text p');
                 if ($description.length) {
                     const originalText = $description.text();
                     const truncatedText = self.truncateText(originalText, self.config.descriptionMaxLength);
                     
-                    // Ulož původní text jako data atribut a zobraz zkrácený
                     $description
                         .attr('data-original-text', originalText)
                         .attr('title', originalText)
                         .text(truncatedText);
                 }
                 
-                // Získej href odkaz z figure nebo h3
                 let articleHref = '';
                 const $figureLink = $article.find('figure[data-href]');
                 const $headingLink = $article.find('h3 a[href]');
@@ -277,15 +267,13 @@
                     articleHref = $headingLink.attr('href');
                 }
                 
-                // Vytvoř wrapper pro centrování tlačítka BEZ ŠIPKY
                 const $textWrapper = $article.find('.gapy-3');
                 if ($textWrapper.length && articleHref && !$textWrapper.find('.btn-to-cart').length) {
-                    // Vytvoř kontejner pro tlačítko s inline stylem pro centrování
                     const $buttonWrapper = $('<div class="article-button-wrapper" style="text-align: center; width: 100%;"></div>');
                     const $discoverBtn = $('<a>')
                         .attr('href', articleHref)
                         .attr('class', 'btn fg sh-md ou bg-se fs-lg-3 fs-1 ca-c')
-                        .text('Číst'); // BEZ ŠIPKY
+                        .text('Číst');
                     
                     $buttonWrapper.append($discoverBtn);
                     $textWrapper.append($buttonWrapper);
@@ -295,23 +283,27 @@
             // Obal články do wrapper
             $articles.wrapAll('<div class="swiper-wrapper"></div>');
             
+            // Vytvoř wrapper pro celý slider s navigací
+            const $sliderWrapper = $('<div class="article-slider-wrapper"></div>');
+            $wrapper.wrap($sliderWrapper);
+            
             // Vytvoř custom navigační šipky
             const navigation = this.createCustomNavigation(sliderId);
             
-            // Přidej navigaci do kontejneru
-            $wrapper.append(navigation.prevButton);
-            $wrapper.append(navigation.nextButton);
+            // Přidej navigaci do wrapper (vedle swiperu, ne dovnitř)
+            $wrapper.parent().append(navigation.prevButton);
+            $wrapper.parent().append(navigation.nextButton);
             
             // Přidej pagination
             $container.append('<div class="swiper-pagination"></div>');
             
-            // PŘIDEJ TLAČÍTKO "VŠECHNY ČLÁNKY" POD SLIDER
+            // Přidej tlačítko "Všechny články"
             if (!$container.find('.all-articles-wrapper').length) {
                 const $allArticlesWrapper = $('<div class="all-articles-wrapper"></div>');
                 const $allArticlesBtn = $('<a>')
                     .attr('href', this.config.allArticlesUrl)
                     .attr('class', 'btn fg sh-md fw-b bg-su fs-ms-1 fs-md-1 fs-xl-3 fs-lg-3 ff-adv fs-1 ca-c td-n mt-4')
-                    .html('Všechny články →'); // SE ŠIPKOU
+                    .html('Všechny články →');
                 
                 $allArticlesWrapper.append($allArticlesBtn);
                 $container.append($allArticlesWrapper);
@@ -331,10 +323,9 @@
                     speed: 600,
                     grabCursor: true,
                     
-                    // Navigace - použij custom tlačítka
                     navigation: {
-                        nextEl: '#' + sliderId + ' .swiper-button-next-custom',
-                        prevEl: '#' + sliderId + ' .swiper-button-prev-custom',
+                        nextEl: $wrapper.parent().find('.swiper-button-next-custom')[0],
+                        prevEl: $wrapper.parent().find('.swiper-button-prev-custom')[0],
                     },
                     
                     pagination: {
@@ -379,7 +370,6 @@
                             self.checkNavigationNeeded(this);
                             self.updateNavigationState(this);
                             
-                            // Přidej click handlery pro custom navigaci
                             const $prevBtn = $(this.navigation.prevEl);
                             const $nextBtn = $(this.navigation.nextEl);
                             const swiper = this;
@@ -445,7 +435,6 @@
             const totalGroups = Math.ceil(swiper.slides.length / swiper.params.slidesPerGroup);
             const $pagination = $(swiper.pagination.el);
             
-            // Skryj pagination pokud je jen jedna skupina
             if (totalGroups <= 1) {
                 $pagination.hide();
                 return;
@@ -516,6 +505,11 @@
 
             const styles = `
                 <style id="article-slider-styles">
+                    /* Wrapper pro slider s navigací */
+                    .article-slider-wrapper {
+                        position: relative;
+                    }
+                    
                     /* Container */
                     .article-slider-active {
                         position: relative;
@@ -550,7 +544,7 @@
                         visibility: visible !important;
                     }
                     
-                    /* ČLÁNKY S POZADÍM #f7f7ef BEZ HOVER EFEKTU */
+                    /* Články */
                     .article-slider-active article {
                         height: 100%;
                         display: flex !important;
@@ -562,18 +556,15 @@
                         overflow: hidden;
                     }
                     
-                    /* Článek bez obrázku */
                     .article-slider-active article:not(:has(figure)) {
                         padding: 20px;
                         justify-content: center;
                     }
                     
-                    /* Viditelnost elementů */
                     .article-slider-active .swiper-slide * {
                         visibility: visible !important;
                     }
                     
-                    /* OBRÁZKY NA PLNOU ŠÍŘKU */
                     .article-slider-active article figure {
                         margin: 0;
                         padding: 0;
@@ -589,7 +580,6 @@
                         display: block;
                     }
                     
-                    /* Text článků */
                     .article-slider-active article .gapy-3 {
                         flex: 1;
                         display: flex;
@@ -599,7 +589,6 @@
                         width: 100%;
                     }
                     
-                    /* Zkrácený popis */
                     .article-slider-active article .text {
                         overflow: hidden;
                         display: -webkit-box;
@@ -607,7 +596,6 @@
                         -webkit-box-orient: vertical;
                     }
                     
-                    /* CENTROVÁNÍ TLAČÍTKA OBJEVIT */
                     .article-slider-active .article-button-wrapper {
                         display: flex !important;
                         justify-content: center !important;
@@ -622,7 +610,46 @@
                         margin: 0 auto !important;
                     }
                     
-                    /* CENTROVÁNÍ TLAČÍTKA VŠECHNY ČLÁNKY */
+                    /* Navigační šipky - specifické pro article slider */
+                    .article-slider-wrapper .carousel-nav {
+                        position: absolute;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        z-index: 10;
+                    }
+                    
+                    .article-slider-wrapper .carousel-prev {
+                        left: -20px;
+                    }
+                    
+                    .article-slider-wrapper .carousel-next {
+                        right: -20px;
+                    }
+                    
+                    /* Pokud je kontejner omezený, posuň šipky dovnitř */
+                    @media (max-width: 1400px) {
+                        .article-slider-wrapper .carousel-prev {
+                            left: 10px;
+                        }
+                        
+                        .article-slider-wrapper .carousel-next {
+                            right: 10px;
+                        }
+                    }
+                    
+                    /* Disabled stav */
+                    .article-slider-wrapper .carousel-nav.disabled {
+                        opacity: 0.35;
+                        cursor: not-allowed;
+                        pointer-events: none;
+                    }
+                    
+                    /* Hover efekt */
+                    .article-slider-wrapper .carousel-nav:not(.disabled):hover {
+                        transform: translateY(-50%) scale(1.1);
+                    }
+                    
+                    /* Tlačítko všechny články */
                     .article-slider-active + .all-articles-wrapper,
                     .all-articles-wrapper {
                         display: flex;
@@ -633,35 +660,7 @@
                         margin: 0 auto !important;
                     }
                     
-                    /* Navigační šipky - pouze pro article-slider */
-                    [id^="article-slider-"] .carousel-nav {
-                        position: absolute;
-                        top: 50%;
-                        transform: translateY(-50%);
-                        z-index: 10;
-                    }
-                    
-                    [id^="article-slider-"] .carousel-prev {
-                        left: 15px;
-                    }
-                    
-                    [id^="article-slider-"] .carousel-next {
-                        right: 15px;
-                    }
-                    
-                    /* Disabled stav pro navigační tlačítka */
-                    [id^="article-slider-"] .carousel-nav.disabled {
-                        opacity: 0.35;
-                        cursor: not-allowed;
-                        pointer-events: none;
-                    }
-                    
-                    /* Hover efekt pro navigační tlačítka */
-                    [id^="article-slider-"] .carousel-nav:not(.disabled):hover {
-                        transform: translateY(-50%) scale(1.1);
-                    }
-                    
-                    /* PAGINATION - stejná jako ProductSlider */
+                    /* Pagination */
                     .article-slider-active .swiper-pagination {
                         position: relative;
                         text-align: center;
@@ -694,8 +693,16 @@
                         border-radius: 4px;
                     }
                     
-                    /* RESPONZIVNÍ - MOBILY */
+                    /* Responzivní úpravy */
                     @media (max-width: 768px) {
+                        .article-slider-wrapper .carousel-prev {
+                            left: 5px;
+                        }
+                        
+                        .article-slider-wrapper .carousel-next {
+                            right: 5px;
+                        }
+                        
                         .article-slider-active .swiper-pagination-bullet {
                             width: 6px;
                             height: 6px;
@@ -708,7 +715,7 @@
                     }
                     
                     @media (max-width: 1200px) {
-                        .carousel-nav {
+                        .article-slider-wrapper .carousel-nav {
                             opacity: 1;
                         }
                     }
@@ -731,13 +738,14 @@
             $('#article-slider-styles').remove();
             $('.article-slider-active').removeClass('article-slider-active');
             $('.swiper-initialized').removeClass('swiper-initialized');
+            $('.article-slider-wrapper').children().unwrap();
         },
 
         /**
          * Debug funkce
          */
         debug: function() {
-            console.log('ArticleSlider v6.3 Debug:');
+            console.log('ArticleSlider v6.4 Debug:');
             console.log('Body classes:', $('body').attr('class'));
             console.log('Should skip page:', this.shouldSkipPage());
             console.log('Instances:', this.instances);
