@@ -133,7 +133,7 @@
         createCustomNavigation: function(sliderId) {
             const prevButton = `
                 <a href="#${sliderId}" 
-                   class="carousel-nav carousel-prev btn fg ico-md sh-md ml-n4 NoScroll bg-de swiper-button-prev-custom" 
+                   class="carousel-nav carousel-prev btn fg ico-md sh-md NoScroll bg-de swiper-button-prev-custom" 
                    role="button" 
                    rel="nofollow"
                    aria-label="Předchozí">
@@ -146,7 +146,7 @@
             
             const nextButton = `
                 <a href="#${sliderId}" 
-                   class="carousel-nav carousel-next btn fg ico-md sh-md mr-n4 NoScroll bg-de swiper-button-next-custom" 
+                   class="carousel-nav carousel-next btn fg ico-md sh-md NoScroll bg-de swiper-button-next-custom" 
                    role="button" 
                    rel="nofollow"
                    aria-label="Další">
