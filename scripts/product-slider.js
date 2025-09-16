@@ -18,7 +18,7 @@
             itemSelector: '.card-item',
             swiperCDN: 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js',
             swiperCSS: 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css',
-            skipOnBodyClasses: ['page-site', 'is-category'], // NOVÉ: třídy pro přeskočení
+            skipOnBodyClasses: ['page-site', 'is-product-list'], // NOVÉ: třídy pro přeskočení
             svgIconsPath: '/images/icons/fa/solid.svg?1757317552'
         },
 
