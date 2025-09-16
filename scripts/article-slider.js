@@ -435,7 +435,7 @@
                             let expectedSlidesPerView = 1;
                             
                             if (windowWidth >= 1502) {
-                                expectedSlidesPerView = 4;
+                                expectedSlidesPerView = 3;
                             } else if (windowWidth >= 1204) {
                                 expectedSlidesPerView = 3;
                             } else if (windowWidth >= 992) {
