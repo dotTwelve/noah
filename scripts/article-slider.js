@@ -22,7 +22,7 @@
             allArticlesUrl: '/clanky-o-zdravi',
             swiperCDN: 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js',
             swiperCSS: 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css',
-            skipOnBodyClasses: ['page-site', 'is-category'],
+            skipOnBodyClasses: ['page-site', 'is-category', 'advisor'],
             svgIconsPath: '/images/icons/fa/solid.svg?1757317552',
             
             // Konfigurace breakpointů a počtu zobrazených článků
