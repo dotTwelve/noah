@@ -2,7 +2,7 @@
  * Article Slider for NOAH Natural Products
  * Převádí seznam článků na interaktivní slider pomocí Swiper.js
  * 
- * @version 8.0.0 - Bootstrap grid breakpointy
+ * @version 8.1.0 - Konfigurovatelné breakpointy
  * @requires jQuery 3.4.1+
  * @requires Swiper 11+
  */
@@ -23,10 +23,89 @@
             swiperCDN: 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js',
             swiperCSS: 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css',
             skipOnBodyClasses: ['page-site', 'is-category'],
-            svgIconsPath: '/images/icons/fa/solid.svg?1757317552'
+            svgIconsPath: '/images/icons/fa/solid.svg?1757317552',
+            
+            // Konfigurace breakpointů a počtu zobrazených článků
+            // Formát: { minWidth: počet článků }
+            // DŮLEŽITÉ: Breakpointy musí být seřazené od nejmenšího po největší
+            breakpoints: {
+                0: 1,      // xs (výchozí) - 1 článek
+                576: 2,    // sm - 2 články
+                768: 2,    // md - 2 články  
+                992: 3,    // lg - 3 články
+                1204: 3,   // xl - 3 články
+                1502: 3    // xxl - 3 články
+            },
+            
+            // Mezery mezi slidy pro různé breakpointy
+            // Formát: { minWidth: mezera v px }
+            spacing: {
+                0: 8,      // xs
+                576: 8,    // sm
+                768: 16,   // md
+                992: 16,   // lg
+                1204: 16,  // xl
+                1502: 16   // xxl
+            }
         },
 
         instances: [],
+
+        /**
+         * Získá počet článků pro aktuální šířku okna
+         * @param {number} windowWidth - Šířka okna v px
+         * @returns {number} Počet článků k zobrazení
+         */
+        getSlidesPerView: function(windowWidth) {
+            let slidesPerView = 1;
+            
+            // Projdi breakpointy od nejmenšího a najdi odpovídající hodnotu
+            for (let breakpoint in this.config.breakpoints) {
+                if (windowWidth >= parseInt(breakpoint)) {
+                    slidesPerView = this.config.breakpoints[breakpoint];
+                }
+            }
+            
+            return slidesPerView;
+        },
+        
+        /**
+         * Získá mezeru mezi slidy pro aktuální šířku okna
+         * @param {number} windowWidth - Šířka okna v px
+         * @returns {number} Mezera v px
+         */
+        getSpaceBetween: function(windowWidth) {
+            let spaceBetween = 8;
+            
+            for (let breakpoint in this.config.spacing) {
+                if (windowWidth >= parseInt(breakpoint)) {
+                    spaceBetween = this.config.spacing[breakpoint];
+                }
+            }
+            
+            return spaceBetween;
+        },
+        
+        /**
+         * Vytvoří konfiguraci breakpointů pro Swiper
+         * @returns {Object} Konfigurace breakpointů pro Swiper
+         */
+        getSwiperBreakpoints: function() {
+            const swiperBreakpoints = {};
+            
+            // Přeskoč první breakpoint (0), protože to je výchozí hodnota
+            const breakpointKeys = Object.keys(this.config.breakpoints);
+            for (let i = 1; i < breakpointKeys.length; i++) {
+                const breakpoint = breakpointKeys[i];
+                swiperBreakpoints[breakpoint] = {
+                    slidesPerView: this.config.breakpoints[breakpoint],
+                    slidesPerGroup: 1,
+                    spaceBetween: this.config.spacing[breakpoint] || 16
+                };
+            }
+            
+            return swiperBreakpoints;
+        },
 
         shouldSkipPage: function() {
             const $body = $('body');
@@ -122,19 +201,7 @@
                 
                 // Zjisti kolik článků se vejde podle aktuální šířky okna
                 const windowWidth = window.innerWidth;
-                let expectedSlidesPerView = 1; // xs
-                
-                if (windowWidth >= 1502) {
-                    expectedSlidesPerView = 3; // xxl
-                } else if (windowWidth >= 1204) {
-                    expectedSlidesPerView = 3; // xl
-                } else if (windowWidth >= 992) {
-                    expectedSlidesPerView = 3; // lg
-                } else if (windowWidth >= 768) {
-                    expectedSlidesPerView = 2; // md
-                } else if (windowWidth >= 576) {
-                    expectedSlidesPerView = 2; // sm
-                }
+                const expectedSlidesPerView = self.getSlidesPerView(windowWidth);
                 
                 const hasSlider = $wrapper.hasClass('swiper-initialized');
                 const needsSlider = totalItems > expectedSlidesPerView;
@@ -217,19 +284,7 @@
             
             // Zjisti kolik článků se vejde podle aktuální šířky okna
             const windowWidth = window.innerWidth;
-            let expectedSlidesPerView = 1; // výchozí pro xs
-            
-            if (windowWidth >= 1502) {
-                expectedSlidesPerView = 3; // xxl
-            } else if (windowWidth >= 1204) {
-                expectedSlidesPerView = 3; // xl
-            } else if (windowWidth >= 992) {
-                expectedSlidesPerView = 3; // lg
-            } else if (windowWidth >= 768) {
-                expectedSlidesPerView = 2; // md
-            } else if (windowWidth >= 576) {
-                expectedSlidesPerView = 2; // sm
-            }
+            const expectedSlidesPerView = this.getSlidesPerView(windowWidth);
             
             // Vyčisti HTML
             $hrs.remove();
@@ -326,11 +381,15 @@
                 const $prevEl = $wrapper.parent().find('.swiper-button-prev-custom')[0];
                 const $nextEl = $wrapper.parent().find('.swiper-button-next-custom')[0];
                 
+                // Získej výchozí hodnoty z konfigurace
+                const defaultSlidesPerView = self.config.breakpoints[0];
+                const defaultSpaceBetween = self.config.spacing[0];
+                
                 const swiperInstance = new Swiper('#' + sliderId, {
-                    // Základní nastavení - 1 článek pro xs/sm/md
-                    slidesPerView: 1,
+                    // Základní nastavení - výchozí hodnoty z konfigurace
+                    slidesPerView: defaultSlidesPerView,
                     slidesPerGroup: 1,
-                    spaceBetween: 8,
+                    spaceBetween: defaultSpaceBetween,
                     
                     // Infinite loop
                     loop: true,
@@ -360,34 +419,8 @@
                         dynamicBullets: false
                     },
                     
-                    // Responzivní breakpointy podle Bootstrap grid
-                    breakpoints: {
-                        576: {  // sm - 2 články
-                            slidesPerView: 2,
-                            slidesPerGroup: 1,
-                            spaceBetween: 8
-                        },
-                        768: {  // md - 2 články
-                            slidesPerView: 2,
-                            slidesPerGroup: 1,
-                            spaceBetween: 16
-                        },
-                        992: {  // lg - 3 články
-                            slidesPerView: 3,
-                            slidesPerGroup: 1,
-                            spaceBetween: 16
-                        },
-                        1204: { // xl - 3 články
-                            slidesPerView: 3,
-                            slidesPerGroup: 1,
-                            spaceBetween: 16
-                        },
-                        1502: { // xxl - 3 články
-                            slidesPerView: 3,
-                            slidesPerGroup: 1,
-                            spaceBetween: 16
-                        }
-                    },
+                    // Responzivní breakpointy z konfigurace
+                    breakpoints: self.getSwiperBreakpoints(),
                     
                     // Události
                     on: {
@@ -432,19 +465,7 @@
                             
                             // Při změně velikosti okna zkontroluj, jestli je slider stále potřeba
                             const windowWidth = window.innerWidth;
-                            let expectedSlidesPerView = 1;
-                            
-                            if (windowWidth >= 1502) {
-                                expectedSlidesPerView = 3;
-                            } else if (windowWidth >= 1204) {
-                                expectedSlidesPerView = 3;
-                            } else if (windowWidth >= 992) {
-                                expectedSlidesPerView = 3;
-                            } else if (windowWidth >= 768) {
-                                expectedSlidesPerView = 2;
-                            } else if (windowWidth >= 576) {
-                                expectedSlidesPerView = 2;
-                            }
+                            const expectedSlidesPerView = self.getSlidesPerView(windowWidth);
                             
                             // Pokud se teď všechny články vejdou, skryj navigaci
                             if (totalItems <= expectedSlidesPerView) {
@@ -621,7 +642,7 @@
                     
                     /* Články - zajistit stejnou výšku */
                     .article-slider-active article {
-                        height: auto; /* Automatická výška pro správné vyrovnání */
+                        height: auto;
                         display: flex !important;
                         flex-direction: column;
                         gap: 20px;
@@ -672,7 +693,7 @@
                     }
                     
                     .article-slider-active .article-button-wrapper {
-                        margin-top: auto; /* Přisadit tlačítko ke spodní části */
+                        margin-top: auto;
                         padding-top: 15px;
                         width: 100%;
                     }
@@ -712,205 +733,6 @@
                         .article-slider-wrapper .carousel-nav {
                             opacity: 1 !important;
                         }
-                    }20px;
-                    }
-                    
-                    /* Hover efekt na celém wrapperu - zobrazí šipky */
-                    .article-slider-wrapper:hover .carousel-nav {
-                        opacity: 1;
-                    }
-                    
-                    /* Hover efekt na samotné šipce */
-                    .article-slider-wrapper .carousel-nav:hover {
-                        transform: translateY(-50%) scale(1.1);
-                        opacity: 1;
-                    }
-                    
-                    /* Touch zařízení - vždy plná opacita */
-                    @media (hover: none) and (pointer: coarse) {
-                        .article-slider-wrapper .carousel-nav {
-                            opacity: 1;
-                        }
-                    }
-                    
-                    /* Styly pro články bez slideru (když se všechny vejdou) */
-                    .article-processed-no-slider .artcl-wrap {
-                        display: flex;
-                        flex-wrap: wrap;
-                        gap: 16px;
-                    }
-                    
-                    .article-processed-no-slider article {
-                        flex: 0 0 100%; /* xs - 1 článek */
-                        display: flex !important;
-                        flex-direction: column;
-                        gap: 20px;
-                        background: #f7f7ef;
-                        padding: 0 0 20px 0;
-                        border-radius: 8px;
-                        overflow: hidden;
-                    }
-                    
-                    @media (min-width: 576px) {
-                        .article-processed-no-slider article {
-                            flex: 0 0 calc(50% - 8px); /* sm - 2 články */
-                        }
-                    }
-                    
-                    @media (min-width: 768px) {
-                        .article-processed-no-slider article {
-                            flex: 0 0 calc(50% - 8px); /* md - 2 články */
-                        }
-                    }
-                    
-                    @media (min-width: 992px) {
-                        .article-processed-no-slider article {
-                            flex: 0 0 calc(33.333% - 11px); /* lg - 3 články */
-                        }
-                    }
-                    
-                    @media (min-width: 1204px) {
-                        .article-processed-no-slider article {
-                            flex: 0 0 calc(33.333% - 11px); /* xl - 3 články */
-                        }
-                    }
-                    
-                    @media (min-width: 1502px) {
-                        .article-processed-no-slider article {
-                            flex: 0 0 calc(33.333% - 11px); /* xxl - 3 články */
-                        }
-                    }
-                    
-                    .article-processed-no-slider article:not(:has(figure)) {
-                        padding: 20px;
-                        justify-content: center;
-                    }
-                    
-                    .article-processed-no-slider article figure {
-                        margin: 0;
-                        padding: 0;
-                        flex-shrink: 0;
-                        overflow: hidden;
-                        width: 100%;
-                    }
-                    
-                    .article-processed-no-slider article figure img {
-                        width: 100%;
-                        height: auto;
-                        object-fit: cover;
-                        display: block;
-                    }
-                    
-                    .article-processed-no-slider article .gapy-3 {
-                        flex: 1;
-                        display: flex;
-                        flex-direction: column;
-                        gap: 12px;
-                        padding: 0 20px;
-                        width: 100%;
-                    }
-                    
-                    .article-processed-no-slider article .text {
-                        overflow: hidden;
-                        display: -webkit-box;
-                        -webkit-line-clamp: 3;
-                        -webkit-box-orient: vertical;
-                    }
-                    
-                    .article-processed-no-slider .article-button-wrapper {
-                        margin-top: auto;
-                        padding-top: 15px;
-                        width: 100%;
-                    }
-                    
-                    /* Styly pro články bez slideru (když se všechny vejdou) */
-                    .article-processed-no-slider .artcl-wrap {
-                        display: flex;
-                        flex-wrap: wrap;
-                        gap: 16px;
-                    }
-                    
-                    .article-processed-no-slider article {
-                        flex: 0 0 100%; /* xs - 1 článek */
-                        display: flex !important;
-                        flex-direction: column;
-                        gap: 20px;
-                        background: #f7f7ef;
-                        padding: 0 0 20px 0;
-                        border-radius: 8px;
-                        overflow: hidden;
-                    }
-                    
-                    @media (min-width: 576px) {
-                        .article-processed-no-slider article {
-                            flex: 0 0 calc(50% - 8px); /* sm - 2 články */
-                        }
-                    }
-                    
-                    @media (min-width: 768px) {
-                        .article-processed-no-slider article {
-                            flex: 0 0 calc(50% - 8px); /* md - 2 články */
-                        }
-                    }
-                    
-                    @media (min-width: 992px) {
-                        .article-processed-no-slider article {
-                            flex: 0 0 calc(33.333% - 11px); /* lg - 3 články */
-                        }
-                    }
-                    
-                    @media (min-width: 1204px) {
-                        .article-processed-no-slider article {
-                            flex: 0 0 calc(33.333% - 11px); /* xl - 3 články */
-                        }
-                    }
-                    
-                    @media (min-width: 1502px) {
-                        .article-processed-no-slider article {
-                            flex: 0 0 calc(33.333% - 11px); /* xxl - 3 články */
-                        }
-                    }
-                    
-                    .article-processed-no-slider article:not(:has(figure)) {
-                        padding: 20px;
-                        justify-content: center;
-                    }
-                    
-                    .article-processed-no-slider article figure {
-                        margin: 0;
-                        padding: 0;
-                        flex-shrink: 0;
-                        overflow: hidden;
-                        width: 100%;
-                    }
-                    
-                    .article-processed-no-slider article figure img {
-                        width: 100%;
-                        height: auto;
-                        object-fit: cover;
-                        display: block;
-                    }
-                    
-                    .article-processed-no-slider article .gapy-3 {
-                        flex: 1;
-                        display: flex;
-                        flex-direction: column;
-                        gap: 12px;
-                        padding: 0 20px;
-                        width: 100%;
-                    }
-                    
-                    .article-processed-no-slider article .text {
-                        overflow: hidden;
-                        display: -webkit-box;
-                        -webkit-line-clamp: 3;
-                        -webkit-box-orient: vertical;
-                    }
-                    
-                    .article-processed-no-slider .article-button-wrapper {
-                        margin-top: auto;
-                        padding-top: 15px;
-                        width: 100%;
                     }
                     
                     /* Tlačítko všechny články */
@@ -994,8 +816,9 @@
         },
 
         debug: function() {
-            console.log('ArticleSlider v8.0 Debug:');
+            console.log('ArticleSlider v8.1 Debug:');
             console.log('Window width:', window.innerWidth + 'px');
+            console.log('Configured breakpoints:', this.config.breakpoints);
             console.log('Instances:', this.instances);
             this.instances.forEach((instance, index) => {
                 const swiper = instance.swiper;
