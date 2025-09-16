@@ -125,7 +125,7 @@
                 let expectedSlidesPerView = 1; // xs
                 
                 if (windowWidth >= 1502) {
-                    expectedSlidesPerView = 4; // xxl
+                    expectedSlidesPerView = 3; // xxl
                 } else if (windowWidth >= 1204) {
                     expectedSlidesPerView = 3; // xl
                 } else if (windowWidth >= 992) {
@@ -220,7 +220,7 @@
             let expectedSlidesPerView = 1; // výchozí pro xs
             
             if (windowWidth >= 1502) {
-                expectedSlidesPerView = 4; // xxl
+                expectedSlidesPerView = 3; // xxl
             } else if (windowWidth >= 1204) {
                 expectedSlidesPerView = 3; // xl
             } else if (windowWidth >= 992) {
@@ -382,8 +382,8 @@
                             slidesPerGroup: 1,
                             spaceBetween: 16
                         },
-                        1502: { // xxl - 4 články
-                            slidesPerView: 4,
+                        1502: { // xxl - 3 články
+                            slidesPerView: 3,
                             slidesPerGroup: 1,
                             spaceBetween: 16
                         }
@@ -777,7 +777,7 @@
                     
                     @media (min-width: 1502px) {
                         .article-processed-no-slider article {
-                            flex: 0 0 calc(25% - 12px); /* xxl - 4 články */
+                            flex: 0 0 calc(33.333% - 11px); /* xxl - 3 články */
                         }
                     }
                     
@@ -867,7 +867,7 @@
                     
                     @media (min-width: 1502px) {
                         .article-processed-no-slider article {
-                            flex: 0 0 calc(25% - 12px); /* xxl - 4 články */
+                            flex: 0 0 calc(33.333% - 11px); /* xxl - 3 články */
                         }
                     }
                     
