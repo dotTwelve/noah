@@ -2,7 +2,7 @@
  * Product Slider for NOAH Natural Products
  * Převádí grid produktů na interaktivní slider pomocí Swiper.js
  * 
- * @version 4.1.0 - Přidána kontrola body classes pro přeskočení inicializace
+ * @version 4.2.0 - Konfigurovatelné breakpointy
  * @requires jQuery 3.4.1+
  * @requires Swiper 11+
  */
@@ -18,11 +18,90 @@
             itemSelector: '.card-item',
             swiperCDN: 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js',
             swiperCSS: 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css',
-            skipOnBodyClasses: ['page-site', 'is-product-list'], // Zde můžete přidat třídy, na kterých se má slider přeskočit
-            svgIconsPath: '/images/icons/fa/solid.svg?1757317552'
+            skipOnBodyClasses: ['page-site', 'is-product-list'],
+            svgIconsPath: '/images/icons/fa/solid.svg?1757317552',
+            
+            // Konfigurace breakpointů a počtu zobrazených produktů
+            // Formát: { minWidth: počet produktů }
+            // DŮLEŽITÉ: Breakpointy musí být seřazené od nejmenšího po největší
+            breakpoints: {
+                0: 2,      // xs (výchozí) - 2 produkty
+                576: 2,    // sm - 2 produkty
+                768: 2,    // md - 2 produkty
+                992: 3,    // lg - 3 produkty
+                1204: 4,   // xl - 4 produkty
+                1502: 5    // xxl - 5 produktů
+            },
+            
+            // Mezery mezi slidy pro různé breakpointy
+            // Formát: { minWidth: mezera v px }
+            spacing: {
+                0: 0,      // xs
+                576: 0,    // sm
+                768: 0,    // md
+                992: 0,    // lg
+                1204: 0,   // xl
+                1502: 0    // xxl
+            }
         },
 
         instances: [],
+
+        /**
+         * Získá počet produktů pro aktuální šířku okna
+         * @param {number} windowWidth - Šířka okna v px
+         * @returns {number} Počet produktů k zobrazení
+         */
+        getSlidesPerView: function(windowWidth) {
+            let slidesPerView = 2; // výchozí hodnota
+            
+            // Projdi breakpointy od nejmenšího a najdi odpovídající hodnotu
+            for (let breakpoint in this.config.breakpoints) {
+                if (windowWidth >= parseInt(breakpoint)) {
+                    slidesPerView = this.config.breakpoints[breakpoint];
+                }
+            }
+            
+            return slidesPerView;
+        },
+        
+        /**
+         * Získá mezeru mezi slidy pro aktuální šířku okna
+         * @param {number} windowWidth - Šířka okna v px
+         * @returns {number} Mezera v px
+         */
+        getSpaceBetween: function(windowWidth) {
+            let spaceBetween = 0;
+            
+            for (let breakpoint in this.config.spacing) {
+                if (windowWidth >= parseInt(breakpoint)) {
+                    spaceBetween = this.config.spacing[breakpoint];
+                }
+            }
+            
+            return spaceBetween;
+        },
+        
+        /**
+         * Vytvoří konfiguraci breakpointů pro Swiper
+         * @returns {Object} Konfigurace breakpointů pro Swiper
+         */
+        getSwiperBreakpoints: function() {
+            const swiperBreakpoints = {};
+            
+            // Přeskoč první breakpoint (0), protože to je výchozí hodnota
+            const breakpointKeys = Object.keys(this.config.breakpoints);
+            for (let i = 1; i < breakpointKeys.length; i++) {
+                const breakpoint = breakpointKeys[i];
+                swiperBreakpoints[breakpoint] = {
+                    slidesPerView: this.config.breakpoints[breakpoint],
+                    slidesPerGroup: 1,
+                    spaceBetween: this.config.spacing[breakpoint] || 0
+                };
+            }
+            
+            return swiperBreakpoints;
+        },
 
         shouldSkipPage: function() {
             const $body = $('body');
@@ -104,17 +183,9 @@
                 const $grid = $container.find(self.config.gridSelector);
                 const totalItems = $grid.find(self.config.itemSelector).length;
                 
-                // Zjisti kolik produktů se vejde
+                // Zjisti kolik produktů se vejde podle aktuální šířky okna
                 const windowWidth = window.innerWidth;
-                let expectedSlidesPerView = 2;
-                
-                if (windowWidth >= 1502) {
-                    expectedSlidesPerView = 5;
-                } else if (windowWidth >= 1204) {
-                    expectedSlidesPerView = 4;
-                } else if (windowWidth >= 992) {
-                    expectedSlidesPerView = 3;
-                }
+                const expectedSlidesPerView = self.getSlidesPerView(windowWidth);
                 
                 const hasSlider = $grid.hasClass('swiper-initialized');
                 const needsSlider = totalItems > expectedSlidesPerView;
@@ -194,19 +265,7 @@
             
             // Zjisti kolik produktů se vejde podle aktuální šířky okna
             const windowWidth = window.innerWidth;
-            let expectedSlidesPerView = 2; // výchozí pro xs
-            
-            if (windowWidth >= 1502) {
-                expectedSlidesPerView = 5; // xxl
-            } else if (windowWidth >= 1204) {
-                expectedSlidesPerView = 4; // xl
-            } else if (windowWidth >= 992) {
-                expectedSlidesPerView = 3; // lg
-            } else if (windowWidth >= 768) {
-                expectedSlidesPerView = 2; // md
-            } else if (windowWidth >= 576) {
-                expectedSlidesPerView = 2; // sm
-            }
+            const expectedSlidesPerView = this.getSlidesPerView(windowWidth);
             
             // Pokud se všechny produkty vejdou, neinicializuj slider
             if (totalItems <= expectedSlidesPerView) {
@@ -246,25 +305,29 @@
                 const $prevEl = $grid.parent().find('.swiper-button-prev-custom')[0];
                 const $nextEl = $grid.parent().find('.swiper-button-next-custom')[0];
                 
+                // Získej výchozí hodnoty z konfigurace
+                const defaultSlidesPerView = self.config.breakpoints[0];
+                const defaultSpaceBetween = self.config.spacing[0];
+                
                 const swiperInstance = new Swiper('#' + sliderId, {
-                    // Základní nastavení - začni s 2 produkty na mobilu (xs)
-                    slidesPerView: 2,
-                    slidesPerGroup: 1, // DŮLEŽITÉ: Změněno na 1 pro správnou pagination
-                    spaceBetween: 0,
+                    // Základní nastavení - výchozí hodnoty z konfigurace
+                    slidesPerView: defaultSlidesPerView,
+                    slidesPerGroup: 1,
+                    spaceBetween: defaultSpaceBetween,
                     
                     // Infinite loop
                     loop: true,
-                    loopFillGroupWithBlank: false, // Nevyplňovat prázdnými slidy
+                    loopFillGroupWithBlank: false,
                     
                     // Automatická výška
-                    autoHeight: false, // DŮLEŽITÉ: false zajistí stejnou výšku všech slidů
+                    autoHeight: false, // Zajistí stejnou výšku všech slidů
                     
                     // Obecné nastavení
                     watchOverflow: false, // Musí být false pro loop
                     threshold: 10,
                     speed: 600,
                     grabCursor: true,
-                    allowTouchMove: true, // Povolit swipe gesta
+                    allowTouchMove: true,
                     
                     // Navigace
                     navigation: {
@@ -277,37 +340,11 @@
                         el: $container.find('.swiper-pagination')[0],
                         clickable: true,
                         type: 'bullets',
-                        dynamicBullets: false, // Vypnuto pro jasné zobrazení jedné aktivní kuličky
+                        dynamicBullets: false,
                     },
                     
-                    // Responzivní breakpointy
-                    breakpoints: {
-                        576: {  // sm
-                            slidesPerView: 2,
-                            slidesPerGroup: 1,
-                            spaceBetween: 0
-                        },
-                        768: {  // md
-                            slidesPerView: 2,
-                            slidesPerGroup: 1,
-                            spaceBetween: 0
-                        },
-                        992: {  // lg
-                            slidesPerView: 3,
-                            slidesPerGroup: 1,
-                            spaceBetween: 0
-                        },
-                        1204: { // xl
-                            slidesPerView: 4,
-                            slidesPerGroup: 1,
-                            spaceBetween: 0
-                        },
-                        1502: { // xxl
-                            slidesPerView: 5,
-                            slidesPerGroup: 1,
-                            spaceBetween: 0
-                        }
-                    },
+                    // Responzivní breakpointy z konfigurace
+                    breakpoints: self.getSwiperBreakpoints(),
                     
                     // Události
                     on: {
@@ -323,22 +360,9 @@
                         resize: function() {
                             // Při změně velikosti okna zkontroluj, jestli je slider stále potřeba
                             const windowWidth = window.innerWidth;
-                            let expectedSlidesPerView = 2;
+                            const expectedSlidesPerView = self.getSlidesPerView(windowWidth);
                             
-                            if (windowWidth >= 1502) {
-                                expectedSlidesPerView = 5;
-                            } else if (windowWidth >= 1204) {
-                                expectedSlidesPerView = 4;
-                            } else if (windowWidth >= 992) {
-                                expectedSlidesPerView = 3;
-                            } else if (windowWidth >= 768) {
-                                expectedSlidesPerView = 2;
-                            } else if (windowWidth >= 576) {
-                                expectedSlidesPerView = 2;
-                            }
-                            
-                            // Pokud se teď všechny produkty vejdou, možná by bylo dobré slider zrušit
-                            // ale pro jednoduchost jen skryjeme navigaci
+                            // Pokud se teď všechny produkty vejdou, skryj navigaci
                             if (totalItems <= expectedSlidesPerView) {
                                 $(this.navigation.prevEl).hide();
                                 $(this.navigation.nextEl).hide();
@@ -438,7 +462,7 @@
                     
                     /* Zachovat původní styly card-item a zajistit správnou výšku */
                     .slider-active .card-item {
-                        height: auto; /* Automatická výška pro správné vyrovnání */
+                        height: auto;
                         display: flex !important;
                     }
                     
@@ -551,11 +575,12 @@
         },
 
         debug: function() {
-            console.log('ProductSlider v4.1 Debug:');
+            console.log('ProductSlider v4.2 Debug:');
             console.log('Window width:', window.innerWidth + 'px');
             console.log('Body classes:', $('body').attr('class'));
             console.log('Skip on classes:', this.config.skipOnBodyClasses);
             console.log('Should skip:', this.shouldSkipPage());
+            console.log('Configured breakpoints:', this.config.breakpoints);
             console.log('Instances:', this.instances);
             this.instances.forEach((instance, index) => {
                 const swiper = instance.swiper;
