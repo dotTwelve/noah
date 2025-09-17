@@ -615,7 +615,6 @@
                     /* Wrapper pro slider s navigací */
                     .article-slider-wrapper {
                         position: relative;
-                        padding-bottom: 60px; /* Prostor pro pagination a tlačítko */
                     }
                     
                     /* Container */
@@ -747,13 +746,11 @@
                         }
                     }
                     
-                    /* Pagination - nyní uvnitř wrapperu */
+                    /* Pagination - normální flow uvnitř wrapperu */
                     .article-slider-wrapper .swiper-pagination {
-                        position: absolute;
-                        bottom: 35px;
-                        left: 0;
-                        right: 0;
+                        position: relative;
                         text-align: center;
+                        margin-top: 20px;
                         line-height: 1;
                         z-index: 10;
                     }
@@ -782,26 +779,14 @@
                         border-radius: 4px;
                     }
                     
-                    /* Tlačítko všechny články - nyní uvnitř wrapperu */
+                    /* Tlačítko všechny články - normální flow uvnitř wrapperu */
                     .article-slider-wrapper .all-articles-wrapper {
-                        position: absolute;
-                        bottom: 0;
-                        left: 0;
-                        right: 0;
                         text-align: center;
-                        z-index: 10;
+                        margin-top: 0;
                     }
                     
                     /* Responzivní úpravy */
                     @media (max-width: 768px) {
-                        .article-slider-wrapper {
-                            padding-bottom: 50px;
-                        }
-                        
-                        .article-slider-wrapper .swiper-pagination {
-                            bottom: 30px;
-                        }
-                        
                         .article-slider-wrapper .swiper-pagination-bullet {
                             width: 6px;
                             height: 6px;
