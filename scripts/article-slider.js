@@ -348,7 +348,7 @@
                     const $buttonWrapper = $('<div class="article-button-wrapper"></div>');
                     const $discoverBtn = $('<a>')
                         .attr('href', articleHref)
-                        .attr('class', 'btn fg sh-md ou bg-se fw-b ff-adv fs-2')
+                        .attr('class', 'btn fg sh-md ou bg-su fs-lg-3 fs-1 ca-c')
                         .text('Celý článek');
                     
                     $buttonWrapper.append($discoverBtn);
@@ -376,7 +376,7 @@
             const $allArticlesWrapper = $('<div class="all-articles-wrapper d-flex pt-2"></div>');
             const $allArticlesBtn = $('<a>')
                 .attr('href', this.config.allArticlesUrl)
-                .attr('class', 'btn fg sh-md bg-se mt-4 fw-b ff-adv fs-2')
+                .attr('class', 'btn fg sh-md fw-b bg-su fs-ms-1 fs-md-1 fs-xl-3 fs-lg-3 ff-adv fs-1 ca-c td-n mt-4')
                 .html('Všechny články →');
             
             $allArticlesWrapper.append($allArticlesBtn);
@@ -653,7 +653,7 @@
                     
                     /* Články - zajistit stejnou výšku */
                     .article-slider-active article {
-                        height: auto;
+                        height: 100%;
                         display: flex !important;
                         flex-direction: column;
                         gap: 20px;
@@ -689,7 +689,7 @@
                     
                     .article-slider-active article .gapy-3 {
                         flex: 1;
-                        display: flex;
+                        display: flex !important;
                         flex-direction: column;
                         gap: 12px;
                         padding: 0 20px;
@@ -701,12 +701,21 @@
                         display: -webkit-box;
                         -webkit-line-clamp: 3;
                         -webkit-box-orient: vertical;
+                        flex-shrink: 0; /* Zabraňuje smrštění textu */
                     }
                     
+                    /* Tlačítko wrapper vyplní zbývající prostor */
                     .article-slider-active .article-button-wrapper {
-                        margin-top: auto;
+                        margin-top: auto !important; /* Přesune tlačítko dolů */
                         padding-top: 15px;
                         width: 100%;
+                        flex-grow: 1; /* Vyplní zbývající prostor */
+                        display: flex;
+                        align-items: flex-end; /* Tlačítko bude úplně dole */
+                    }
+                    
+                    .article-slider-active .article-button-wrapper .btn {
+                        width: 100%; /* Tlačítko na celou šířku */
                     }
                     
                     /* Navigační šipky */
