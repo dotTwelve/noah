@@ -362,7 +362,7 @@
             
             // Přidej tlačítko všechny články
             if (!$container.find('.all-articles-wrapper').length) {
-                const $allArticlesWrapper = $('<div class="all-articles-wrapper container pt-2"></div>');
+                const $allArticlesWrapper = $('<div class="all-articles-wrapper container d-flex pt-2"></div>');
                 const $allArticlesBtn = $('<a>')
                     .attr('href', this.config.allArticlesUrl)
                     .attr('class', 'btn fg sh-md fw-b bg-su fs-ms-1 fs-md-1 fs-xl-3 fs-lg-3 ff-adv fs-1 ca-c td-n mt-4')
