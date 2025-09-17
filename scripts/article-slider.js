@@ -657,7 +657,6 @@
                         display: flex !important;
                         flex-direction: column;
                         gap: 20px;
-                        background: #f7f7ef;
                         padding: 0 0 20px 0;
                         border-radius: 8px;
                         overflow: hidden;
