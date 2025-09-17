@@ -348,7 +348,7 @@
                     const $buttonWrapper = $('<div class="article-button-wrapper"></div>');
                     const $discoverBtn = $('<a>')
                         .attr('href', articleHref)
-                        .attr('class', 'btn fg sh-md ou bg-su fs-lg-3 fs-1 ca-c')
+                        .attr('class', 'btn fg-se sh-md ou fs-1')
                         .text('Celý článek');
                     
                     $buttonWrapper.append($discoverBtn);
@@ -376,7 +376,7 @@
             const $allArticlesWrapper = $('<div class="all-articles-wrapper d-flex pt-2"></div>');
             const $allArticlesBtn = $('<a>')
                 .attr('href', this.config.allArticlesUrl)
-                .attr('class', 'btn fg sh-md fw-b bg-su fs-ms-1 fs-md-1 fs-xl-3 fs-lg-3 ff-adv fs-1 ca-c td-n mt-4')
+                .attr('class', 'btn fg-se sh-md fs-2 mt-4')
                 .html('Všechny články →');
             
             $allArticlesWrapper.append($allArticlesBtn);
