@@ -345,7 +345,7 @@
                 
                 const $textWrapper = $article.find('.gapy-3');
                 if ($textWrapper.length && articleHref && !$textWrapper.find('.article-button-wrapper').length) {
-                    const $buttonWrapper = $('<div class="article-button-wrapper"></div>');
+                    const $buttonWrapper = $('<div class="article-button-wrapper d-flex"></div>');
                     const $discoverBtn = $('<a>')
                         .attr('href', articleHref)
                         .attr('class', 'btn fg bg-se ou fs-2 ca-l')
