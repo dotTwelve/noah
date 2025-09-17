@@ -348,7 +348,7 @@
                     const $buttonWrapper = $('<div class="article-button-wrapper"></div>');
                     const $discoverBtn = $('<a>')
                         .attr('href', articleHref)
-                        .attr('class', 'btn fg bg-des sh-md fs-2')
+                        .attr('class', 'btn fg bg-se ou fs-2')
                         .text('Celý článek');
                     
                     $buttonWrapper.append($discoverBtn);
