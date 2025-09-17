@@ -653,7 +653,7 @@
                     
                     /* Články - zajistit stejnou výšku */
                     .article-slider-active article {
-                        height: 100%;
+                        min-height: 100%;
                         display: flex !important;
                         flex-direction: column;
                         gap: 20px;
@@ -701,21 +701,12 @@
                         display: -webkit-box;
                         -webkit-line-clamp: 3;
                         -webkit-box-orient: vertical;
-                        flex-shrink: 0; /* Zabraňuje smrštění textu */
                     }
                     
-                    /* Tlačítko wrapper vyplní zbývající prostor */
                     .article-slider-active .article-button-wrapper {
-                        margin-top: auto !important; /* Přesune tlačítko dolů */
+                        margin-top: auto;
                         padding-top: 15px;
                         width: 100%;
-                        flex-grow: 1; /* Vyplní zbývající prostor */
-                        display: flex;
-                        align-items: flex-end; /* Tlačítko bude úplně dole */
-                    }
-                    
-                    .article-slider-active .article-button-wrapper .btn {
-                        width: 100%; /* Tlačítko na celou šířku */
                     }
                     
                     /* Navigační šipky */
