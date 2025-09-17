@@ -658,7 +658,7 @@
                         flex-direction: column;
                         gap: 20px;
                         padding: 0 0 20px 0;
-                        border-radius: 0.45rem;
+                        border-radius: 2rem;
                         overflow: hidden;
                     }
                     
