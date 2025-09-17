@@ -778,12 +778,6 @@
                         border-radius: 4px;
                     }
                     
-                    /* Tlačítko všechny články - normální flow uvnitř wrapperu */
-                    .article-slider-wrapper .all-articles-wrapper {
-                        text-align: center;
-                        margin-top: 0;
-                    }
-                    
                     /* Responzivní úpravy */
                     @media (max-width: 768px) {
                         .article-slider-wrapper .swiper-pagination-bullet {
@@ -794,12 +788,6 @@
                         
                         .article-slider-wrapper .swiper-pagination-bullet-active {
                             width: 20px;
-                        }
-                    }
-                    
-                    @media (max-width: 1204px) {
-                        .article-slider-wrapper .carousel-nav {
-                            opacity: 1;
                         }
                     }
                 </style>
