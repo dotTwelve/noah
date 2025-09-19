@@ -1,29 +1,49 @@
 /**
  * Aktualizace mobilního košíku při AJAX změnách
- * Verze 6.0 - Snippet-aware verze pro Nette
+ * Verze 6.1 - Čte cenu z uc-amount elementu
  */
 (function() {
     'use strict';
     
     const MobileCartUpdater = {
+        // Konfigurace
+        config: {
+            breakpoints: {
+                xs: 0,      // výchozí - 1 článek
+                sm: 576,    // 2 články
+                md: 768,    // 2 články  
+                lg: 992,    // 3 články
+                xl: 1204,   // 3 články - desktop breakpoint
+                xxl: 1502   // 3 články
+            },
+            // Desktop je od xl breakpointu
+            get desktopBreakpoint() {
+                return this.breakpoints.xl;
+            },
+            get mobileMaxWidth() {
+                return this.breakpoints.xl - 1;
+            }
+        },
+        
         // Stav
         lastPrice: 0,
         priceText: '',
         
         // Selektory
         selectors: {
-            desktopCart: '#snippet--basketTotalAjax .btn, #userCartDropdown .btn, .hdr-crt-btn',
-            mobileLinks: [
-                '#snippet--basketNavbarAjax a[href="/cart"]',
-                '#snippet--basketFixedAjax a[href="/cart"]', 
-                '#userCartDropdown2 > a[href="/cart"]',
-                '.navbar-toggler.nt-cart-ico[href="/cart"]'
+            // Čteme z uc-amount elementu v UserCart
+            priceSource: '#snippet--basketTotalAjax .uc-amount, #snippet--basketNavbarAjax .uc-amount',
+            // Všechny UserCart komponenty kde zobrazujeme cenu
+            cartComponents: [
+                '#snippet--basketTotalAjax #userCart a[href="/cart"]',      // Desktop
+                '#snippet--basketNavbarAjax #userCartDropdown2 a[href="/cart"]'  // Mobilní
             ].join(', ')
         },
         
         // Inicializace
         init() {
-            console.log('[MobileCart v6.0] Initializing...');
+            console.log('[MobileCart v6.1] Initializing...');
+            console.log('[MobileCart v6.1] Desktop breakpoint:', this.config.desktopBreakpoint + 'px');
             
             this.addStyles();
             this.setupAjaxInterception();
@@ -34,7 +54,7 @@
                 this.applyPriceToElements(true);
             }, 100);
             
-            console.log('[MobileCart v6.0] Ready');
+            console.log('[MobileCart v6.1] Ready');
         },
         
         // Přidání stylů
@@ -44,7 +64,8 @@
             const style = document.createElement('style');
             style.id = 'mobile-cart-styles-v6';
             style.textContent = `
-                @media (max-width: 1200px) {
+                /* Mobilní (do 1203px) */
+                @media (max-width: 1203px) {
                     .mobile-cart-price {
                         display: inline-block !important;
                         margin: 0 6px;
@@ -52,31 +73,39 @@
                         white-space: nowrap;
                     }
                     
-                    /* Animace čísel */
-                    @keyframes priceUpdate {
-                        0% { opacity: 0.3; }
-                        100% { opacity: 1; }
-                    }
-                    
-                    .mobile-cart-price.updating {
-                        animation: priceUpdate 0.6s ease;
-                    }
-                    
-                    /* Skrýt v dropdown menu */
-                    .dropdown-menu .mobile-cart-price {
-                        display: none !important;
-                    }
-                    
-                    /* Skrýt uc-amount v mobilní navigaci */
+                    /* Skrýt původní uc-amount v mobilní navigaci */
                     #snippet--basketNavbarAjax .uc-amount {
                         display: none !important;
                     }
                 }
                 
-                @media (min-width: 1201px) {
+                /* Desktop (od 1204px - xl breakpoint) */
+                @media (min-width: 1204px) {
                     .mobile-cart-price {
+                        display: inline-block !important;
+                        margin: 0 6px;
+                        font-variant-numeric: tabular-nums;
+                        white-space: nowrap;
+                    }
+                    
+                    /* Skrýt původní uc-amount v desktop košíku */
+                    #snippet--basketTotalAjax .uc-amount {
                         display: none !important;
                     }
+                }
+                /* Animace čísel */
+                @keyframes priceUpdate {
+                    0% { opacity: 0.3; }
+                    100% { opacity: 1; }
+                }
+                
+                .mobile-cart-price.updating {
+                    animation: priceUpdate 0.6s ease;
+                }
+                
+                /* Skrýt v dropdown menu */
+                .dropdown-menu .mobile-cart-price {
+                    display: none !important;
                 }
             `;
             document.head.appendChild(style);
@@ -95,7 +124,7 @@
                 
                 // Po AJAX - aplikovat cenu na nové elementy
                 jQuery(document).ajaxComplete((event, xhr, settings) => {
-                    console.log('[MobileCart v6.0] AJAX complete');
+                    console.log('[MobileCart v6.1] AJAX complete');
                     
                     // Počkat na DOM update
                     setTimeout(() => {
@@ -118,21 +147,30 @@
             };
         },
         
-        // Aktualizovat cenu z desktop košíku
+        // Aktualizovat cenu z uc-amount elementu
         updatePrice() {
-            const desktopBtn = document.querySelector(this.selectors.desktopCart);
-            if (!desktopBtn) return false;
+            const priceElement = document.querySelector(this.selectors.priceSource);
+            if (!priceElement) {
+                console.log('[MobileCart v6.1] No uc-amount element found');
+                return false;
+            }
             
-            const match = desktopBtn.textContent.match(/([\d\s]+(?:,\d+)?)\s*Kč/);
-            if (!match) return false;
+            // Získat text přímo z uc-amount
+            const priceText = priceElement.textContent.trim();
+            if (!priceText) {
+                console.log('[MobileCart v6.1] Empty uc-amount text');
+                return false;
+            }
             
-            this.priceText = match[0].trim();
-            const newPrice = parseFloat(match[1].replace(/\s/g, '').replace(',', '.'));
+            // Extrahovat číslo pro porovnání změn
+            const match = priceText.match(/([\d\s]+(?:,\d+)?)/);
+            const newPrice = match ? parseFloat(match[1].replace(/\s/g, '').replace(',', '.')) : 0;
             
             const changed = Math.abs(this.lastPrice - newPrice) > 0.01;
             this.lastPrice = newPrice;
+            this.priceText = priceText;
             
-            console.log('[MobileCart v6.0] Price:', this.priceText, 'Changed:', changed);
+            console.log('[MobileCart v6.1] Price from uc-amount:', this.priceText, 'Changed:', changed);
             return changed;
         },
         
@@ -140,9 +178,9 @@
         applyPriceToElements(immediate = false) {
             if (!this.priceText) return;
             
-            const mobileLinks = document.querySelectorAll(this.selectors.mobileLinks);
+            const cartLinks = document.querySelectorAll(this.selectors.cartComponents);
             
-            mobileLinks.forEach((link, index) => {
+            cartLinks.forEach((link, index) => {
                 // Skip dropdown items
                 if (link.closest('.dropdown-menu')) return;
                 
@@ -151,7 +189,7 @@
                 
                 if (!priceEl) {
                     priceEl = this.createPriceElement(link);
-                    console.log('[MobileCart v6.0] Created price element for link', index);
+                    console.log('[MobileCart v6.1] Created price element for cart component', index);
                 }
                 
                 // Nastavit text
