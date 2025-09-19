@@ -30,8 +30,8 @@
             priceSource: '#snippet--basketTotalAjax .uc-amount, #snippet--basketNavbarAjax .uc-amount',
             // Všechny UserCart komponenty kde zobrazujeme cenu
             cartComponents: [
-                '#snippet--basketTotalAjax #userCart',           // Desktop dropdown toggle
-                '#snippet--basketNavbarAjax #userCartDropdown2'  // Mobilní
+                '#snippet--basketTotalAjax #userCart',                    // Desktop dropdown toggle
+                '#snippet--basketNavbarAjax #userCartDropdown2 > a'      // Mobilní odkaz
             ].join(', ')
         },
         
@@ -212,13 +212,13 @@
             priceEl.className = 'mobile-cart-price';
             priceEl.textContent = this.priceText || '';
             
-            // Pokud je to userCartDropdown2, odstranit ico-* třídy
-            if (link.id === 'userCartDropdown2') {
+            // Pokud je to odkaz v userCartDropdown2, odstranit ico-* třídy z odkazu
+            if (link.closest('#userCartDropdown2')) {
                 const classes = Array.from(link.classList);
                 classes.forEach(cls => {
                     if (cls.startsWith('ico-')) {
                         link.classList.remove(cls);
-                        console.log('[MobileCart v6.1] Removed class:', cls, 'from userCartDropdown2');
+                        console.log('[MobileCart v6.1] Removed class:', cls, 'from mobile cart link');
                     }
                 });
             }
