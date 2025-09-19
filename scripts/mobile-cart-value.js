@@ -212,6 +212,17 @@
             priceEl.className = 'mobile-cart-price';
             priceEl.textContent = this.priceText || '';
             
+            // Pokud je to userCartDropdown2, odstranit ico-* třídy
+            if (link.id === 'userCartDropdown2') {
+                const classes = Array.from(link.classList);
+                classes.forEach(cls => {
+                    if (cls.startsWith('ico-')) {
+                        link.classList.remove(cls);
+                        console.log('[MobileCart v6.1] Removed class:', cls, 'from userCartDropdown2');
+                    }
+                });
+            }
+            
             // Najít nejlepší pozici
             const icon = link.querySelector('svg, i.fa, .fa');
             const badge = link.querySelector('.badge');
