@@ -30,8 +30,8 @@
             priceSource: '#snippet--basketTotalAjax .uc-amount, #snippet--basketNavbarAjax .uc-amount',
             // Všechny UserCart komponenty kde zobrazujeme cenu
             cartComponents: [
-                '#snippet--basketTotalAjax #userCart a[href="/cart"]',      // Desktop
-                '#snippet--basketNavbarAjax #userCartDropdown2 a[href="/cart"]'  // Mobilní
+                '#snippet--basketTotalAjax #userCart',           // Desktop dropdown toggle
+                '#snippet--basketNavbarAjax #userCartDropdown2'  // Mobilní
             ].join(', ')
         },
         
