@@ -34,7 +34,7 @@
                 768: 2,    // md - 2 články  
                 992: 3,    // lg - 3 články
                 1204: 3,   // xl - 3 články
-                1502: 3    // xxl - 3 články
+                1502: 4    // xxl - 4 články
             },
             
             // Mezery mezi slidy pro různé breakpointy
