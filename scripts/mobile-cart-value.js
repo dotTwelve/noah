@@ -8,6 +8,7 @@
     const MobileCartUpdater = {
         // Konfigurace
         config: {
+            // Breakpointy pro dokumentaci
             breakpoints: {
                 xs: 0,      // výchozí - 1 článek
                 sm: 576,    // 2 články
@@ -15,14 +16,8 @@
                 lg: 992,    // 3 články
                 xl: 1204,   // 3 články - desktop breakpoint
                 xxl: 1502   // 3 články
-            },
-            // Desktop je od xl breakpointu
-            get desktopBreakpoint() {
-                return this.breakpoints.xl;
-            },
-            get mobileMaxWidth() {
-                return this.breakpoints.xl - 1;
             }
+            // Poznámka: Desktop je od xl breakpointu (1204px), pod tím je mobilní
         },
         
         // Stav
@@ -43,7 +38,6 @@
         // Inicializace
         init() {
             console.log('[MobileCart v6.1] Initializing...');
-            console.log('[MobileCart v6.1] Desktop breakpoint:', this.config.desktopBreakpoint + 'px');
             
             this.addStyles();
             this.setupAjaxInterception();
