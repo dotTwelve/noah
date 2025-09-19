@@ -2,7 +2,7 @@
  * Article Slider for NOAH Natural Products
  * Převádí seznam článků na interaktivní slider pomocí Swiper.js
  * 
- * @version 8.2.0 - Navigace a tlačítko uvnitř wrapperu
+ * @version 8.2.1 - Navigace a tlačítko uvnitř wrapperu + klikací obrázky
  * @requires jQuery 3.4.1+
  * @requires Swiper 11+
  */
@@ -275,6 +275,61 @@
             };
         },
 
+        /**
+         * Zjistí URL článku z různých možných zdrojů
+         * @param {jQuery} $article - jQuery element článku
+         * @returns {string} URL článku nebo prázdný řetězec
+         */
+        getArticleUrl: function($article) {
+            let articleHref = '';
+            
+            // Priorita zdrojů URL (od nejvyšší po nejnižší):
+            // 1. data-href na figure
+            // 2. href z odkazu v nadpisu (h3 a, h2 a)
+            // 3. href z prvního odkazu v článku
+            
+            const $figureLink = $article.find('figure[data-href]');
+            const $headingLink = $article.find('h3 a[href], h2 a[href]');
+            const $firstLink = $article.find('a[href]').first();
+            
+            if ($figureLink.length) {
+                articleHref = $figureLink.attr('data-href');
+            } else if ($headingLink.length) {
+                articleHref = $headingLink.attr('href');
+            } else if ($firstLink.length) {
+                articleHref = $firstLink.attr('href');
+            }
+            
+            return articleHref;
+        },
+
+        /**
+         * Vytvoří klikací obrázek článku
+         * @param {jQuery} $article - jQuery element článku
+         * @param {string} articleUrl - URL článku
+         */
+        makeImageClickable: function($article, articleUrl) {
+            if (!articleUrl) return;
+            
+            const $figure = $article.find('figure');
+            const $image = $figure.find('img');
+            
+            if ($figure.length && $image.length) {
+                // Zkontroluj, jestli už není obrázek v odkazu
+                if (!$image.closest('a').length) {
+                    // Obal obrázek do odkazu
+                    const $imageLink = $('<a>')
+                        .attr('href', articleUrl)
+                        .attr('class', 'article-image-link')
+                        .attr('title', $article.find('h3, h2').text().trim() || 'Přečíst článek');
+                    
+                    $image.wrap($imageLink);
+                    
+                    console.log('ArticleSlider: Obrázek v článku byl učiněn klikacím:', articleUrl);
+                }
+            }
+        },
+
         createSlider: function($container, $wrapper, index) {
             const self = this;
             
@@ -333,16 +388,15 @@
                         .text(truncatedText);
                 }
                 
-                let articleHref = '';
-                const $figureLink = $article.find('figure[data-href]');
-                const $headingLink = $article.find('h3 a[href], h2 a[href]');
+                // Získej URL článku
+                const articleHref = self.getArticleUrl($article);
                 
-                if ($figureLink.length) {
-                    articleHref = $figureLink.attr('data-href');
-                } else if ($headingLink.length) {
-                    articleHref = $headingLink.attr('href');
+                // Udělej obrázek klikací
+                if (articleHref) {
+                    self.makeImageClickable($article, articleHref);
                 }
                 
+                // Přidej tlačítko "Číst" pokud neexistuje
                 const $textWrapper = $article.find('.gapy-3');
                 if ($textWrapper.length && articleHref && !$textWrapper.find('.article-button-wrapper').length) {
                     const $buttonWrapper = $('<div class="article-button-wrapper d-flex"></div>');
@@ -368,11 +422,11 @@
             $wrapper.parent().append(navigation.prevButton);
             $wrapper.parent().append(navigation.nextButton);
             
-            // ZMĚNA: Přidej pagination DOVNITŘ wrapperu
+            // Přidej pagination DOVNITŘ wrapperu
             const $pagination = $('<div class="swiper-pagination"></div>');
             $wrapper.parent().append($pagination);
             
-            // ZMĚNA: Přidej tlačítko všechny články DOVNITŘ wrapperu
+            // Přidej tlačítko všechny články DOVNITŘ wrapperu
             const $allArticlesWrapper = $('<div class="all-articles-wrapper d-flex pt-2"></div>');
             const $allArticlesBtn = $('<a>')
                 .attr('href', this.config.allArticlesUrl)
@@ -679,11 +733,27 @@
                         width: 100%;
                     }
                     
+                    /* Klikací obrázek článku */
+                    .article-slider-active article figure .article-image-link {
+                        display: block;
+                        transition: transform 0.3s ease;
+                    }
+                    
+                    .article-slider-active article figure .article-image-link:hover {
+                        transform: scale(1.02);
+                    }
+                    
                     .article-slider-active article figure img {
                         width: 100%;
                         height: auto;
                         object-fit: cover;
                         display: block;
+                        cursor: pointer;
+                        transition: opacity 0.3s ease;
+                    }
+                    
+                    .article-slider-active article figure .article-image-link:hover img {
+                        opacity: 0.9;
                     }
                     
                     .article-slider-active article .gapy-3 {
@@ -789,6 +859,11 @@
                         .article-slider-wrapper .swiper-pagination-bullet-active {
                             width: 20px;
                         }
+                        
+                        /* Na mobilu menší hover efekt */
+                        .article-slider-active article figure .article-image-link:hover {
+                            transform: scale(1.01);
+                        }
                     }
                 </style>
             `;
@@ -825,7 +900,7 @@
         },
 
         debug: function() {
-            console.log('ArticleSlider v8.2 Debug:');
+            console.log('ArticleSlider v8.2.1 Debug:');
             console.log('Window width:', window.innerWidth + 'px');
             console.log('Configured breakpoints:', this.config.breakpoints);
             console.log('Instances:', this.instances);
