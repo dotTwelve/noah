@@ -2,7 +2,7 @@
  * Product Slider for NOAH Natural Products
  * Převádí grid produktů na interaktivní slider pomocí Swiper.js
  * 
- * @version 4.2.0 - Konfigurovatelné breakpointy
+ * @version 4.2.1 - Konfigurovatelné breakpointy + CSS úpravy
  * @requires jQuery 3.4.1+
  * @requires Swiper 11+
  */
@@ -101,6 +101,27 @@
             }
             
             return swiperBreakpoints;
+        },
+
+        /**
+         * Nahradí třídu pb-6 za pb-2 kdekoliv uvnitř kontejneru
+         * @param {jQuery} $container - Kontejner pro úpravu
+         */
+        replacePaddingClass: function($container) {
+            // Najdi všechny .pb-6 v kontejneru
+            const $pb6Elements = $container.find('.pb-6');
+            
+            // Zkontroluj také samotný kontejner
+            if ($container.hasClass('pb-6')) {
+                $container.removeClass('pb-6').addClass('pb-2');
+                console.log('ProductSlider: Nahrazena třída pb-6 → pb-2 na kontejneru');
+            }
+            
+            // Nahraď ve všech potomcích
+            if ($pb6Elements.length > 0) {
+                $pb6Elements.removeClass('pb-6').addClass('pb-2');
+                console.log(`ProductSlider: Nahrazeno ${$pb6Elements.length}× třída pb-6 → pb-2 uvnitř kontejneru`);
+            }
         },
 
         shouldSkipPage: function() {
@@ -262,6 +283,9 @@
             if (totalItems === 0) {
                 return;
             }
+            
+            // Nahraď padding třídy
+            this.replacePaddingClass($container);
             
             // Zjisti kolik produktů se vejde podle aktuální šířky okna
             const windowWidth = window.innerWidth;
@@ -575,7 +599,7 @@
         },
 
         debug: function() {
-            console.log('ProductSlider v4.2 Debug:');
+            console.log('ProductSlider v4.2.1 Debug:');
             console.log('Window width:', window.innerWidth + 'px');
             console.log('Body classes:', $('body').attr('class'));
             console.log('Skip on classes:', this.config.skipOnBodyClasses);
