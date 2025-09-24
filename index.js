@@ -31,6 +31,12 @@
                 description: 'Ořezání popisu produktu v seznamu'
             },
             {
+                name: 'product-desc-separator',
+                file: 'scripts/product-desc-separator.js',
+                enabled: true,
+                description: 'Rozdělení krátkého popisu produktu v detailu na dvě vety'
+            },
+            {
                 name: 'product-slider',
                 file: 'scripts/product-slider.js',
                 enabled: true,
