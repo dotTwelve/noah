@@ -434,7 +434,7 @@
                     
                     /* Swiper container */
                     .slider-active .swiper {
-                        overflow: hidden;
+                        /* overflow: hidden; */
                         position: relative;
                     }
                     
