@@ -25,6 +25,12 @@
                 description: 'Odstranění prázdných odkazů'
             },
             {
+                name: 'first-sentence',
+                file: 'scripts/first-sentence.js',
+                enabled: true,
+                description: 'Ořezání popisu produktu v seznamu'
+            },
+            {
                 name: 'product-slider',
                 file: 'scripts/product-slider.js',
                 enabled: true,
