@@ -52,8 +52,9 @@
                 // Vytvořit nový obsah
                 element.innerHTML = '';
                 
-                // Vytvořit <p> element pro první větu
+                // Vytvořit <p> element pro první větu s třídou fs-4
                 const firstSentenceParagraph = document.createElement('p');
+                firstSentenceParagraph.className = 'fs-4';
                 firstSentenceParagraph.textContent = sentences.first;
                 element.appendChild(firstSentenceParagraph);
                 
