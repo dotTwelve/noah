@@ -1,5 +1,5 @@
 // Show Only First Sentence Script - Oddělení první věty
-// Skript pro oddělení první věty v elementech .p-i-desc
+// Skript pro oddělení první věty v elementech .p-i-desc se zachováním formátování
 // (c) 2025
 (function() {
     'use strict';
@@ -8,8 +8,8 @@
     function getFirstSentence(text) {
         if (!text || text.trim() === '') return { first: '', rest: '' };
         
-        // Normalizovat text (odstranit nadbytečné mezery)
-        text = text.trim().replace(/\s+/g, ' ');
+        // Normalizovat mezery, ale zachovat strukturu
+        text = text.trim();
         
         // Regulární výraz pro nalezení první věty
         const sentenceRegex = /^[^.!?]*[.!?](?=\s+[A-ZČŘŠŽÝÁÍÉÚŮŇŤĎ]|$)/;
@@ -21,7 +21,6 @@
             return { first: firstSentence, rest: restText };
         }
         
-        // Pokud není nalezena interpunkce, vrátí celý text jako první větu
         return { first: text, rest: '' };
     }
     
@@ -36,18 +35,54 @@
                 return;
             }
             
+            // Uložit původní HTML
+            const originalHTML = element.innerHTML;
             const originalText = element.textContent;
+            
             const { first, rest } = getFirstSentence(originalText);
             
             // Pouze pokud existuje zbytek textu
             if (rest !== '') {
-                // Uložit původní text jako atribut
-                element.setAttribute('data-original-text', originalText);
-                element.setAttribute('data-separated', 'true');
+                // Najít pozici konce první věty v původním HTML
+                const firstSentenceLength = first.length;
                 
-                // Vytvořit novou strukturu s oddělenou první větou
-                element.innerHTML = `<span class="first-sentence">${first}</span> ${rest}`;
-                count++;
+                // Projít HTML a najít, kde končí první věta
+                let charCount = 0;
+                let htmlPos = 0;
+                let inTag = false;
+                
+                for (let i = 0; i < originalHTML.length; i++) {
+                    if (originalHTML[i] === '<') {
+                        inTag = true;
+                    } else if (originalHTML[i] === '>') {
+                        inTag = false;
+                    } else if (!inTag) {
+                        charCount++;
+                        if (charCount === firstSentenceLength) {
+                            // Najít konec věty včetně interpunkce a mezery
+                            htmlPos = i + 1;
+                            // Přeskočit mezery za větou
+                            while (htmlPos < originalHTML.length && 
+                                   (originalHTML[htmlPos] === ' ' || originalHTML[htmlPos] === '\n')) {
+                                htmlPos++;
+                            }
+                            break;
+                        }
+                    }
+                }
+                
+                if (htmlPos > 0) {
+                    const firstPart = originalHTML.substring(0, htmlPos);
+                    const restPart = originalHTML.substring(htmlPos);
+                    
+                    // Uložit původní HTML jako atribut
+                    element.setAttribute('data-original-html', originalHTML);
+                    element.setAttribute('data-separated', 'true');
+                    
+                    // Vytvořit novou strukturu
+                    element.innerHTML = `<span class="first-sentence">${firstPart}</span>${restPart}`;
+                    count++;
+                }
             }
         });
         
@@ -98,11 +133,11 @@
     window.restoreOriginalText = function() {
         const elements = document.querySelectorAll('.p-i-desc[data-separated="true"]');
         elements.forEach(element => {
-            const originalText = element.getAttribute('data-original-text');
-            if (originalText) {
-                element.textContent = originalText;
+            const originalHTML = element.getAttribute('data-original-html');
+            if (originalHTML) {
+                element.innerHTML = originalHTML;
                 element.removeAttribute('data-separated');
-                element.removeAttribute('data-original-text');
+                element.removeAttribute('data-original-html');
             }
         });
         console.log(`[First Sentence] Obnoveno ${elements.length} elementů`);
