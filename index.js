@@ -23,13 +23,13 @@
                 file: 'scripts/remove-hashbang-links.js',
                 enabled: true,
                 description: 'Odstranění prázdných odkazů'
-            },/*
+            },
             {
                 name: 'first-sentence',
                 file: 'scripts/first-sentence.js',
                 enabled: true,
                 description: 'Ořezání popisu produktu v seznamu'
-            },*/
+            },
             {
                 name: 'product-desc-separator',
                 file: 'scripts/product-desc-separator.js',
