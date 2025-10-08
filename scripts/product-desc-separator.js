@@ -13,18 +13,12 @@
         const normalizedText = text.trim().replace(/\s+/g, ' ');
         
         // Vylepšený regex pro nalezení konce první věty
-        // Hledá tečku, vykřičník nebo otazník následované:
-        // - mezerou + velké písmeno (včetně českých znaků)
-        // - nebo konec řetězce
         const sentenceRegex = /[.!?](?=\s+[A-ZČŘŠŽÝÁÍÉÚŮŇŤĎĚÓĹĽ]|\s*$)/;
         const match = normalizedText.match(sentenceRegex);
         
         if (match) {
-            // Vrátit pozici za tečkou v NORMALIZOVANÉM textu
             const posInNormalized = match.index + 1;
             
-            // Teď musíme najít odpovídající pozici v PŮVODNÍM textu
-            // Projdeme původní text a počítáme ne-whitespace znaky
             let charCountInOriginal = 0;
             let nonWhitespaceCount = 0;
             
@@ -34,24 +28,17 @@
                 }
                 charCountInOriginal++;
                 
-                // Spočítat, kolik ne-whitespace znaků máme v normalizovaném textu do této pozice
                 let nonWhitespaceInNormalized = 0;
-                let whitespaceInNormalized = 0;
                 for (let j = 0; j < posInNormalized; j++) {
-                    if (normalizedText[j] === ' ') {
-                        whitespaceInNormalized++;
-                    } else {
+                    if (normalizedText[j] !== ' ') {
                         nonWhitespaceInNormalized++;
                     }
                 }
                 
-                // Pokud máme stejný počet ne-whitespace znaků, našli jsme pozici
                 if (nonWhitespaceCount === nonWhitespaceInNormalized) {
-                    // Přidat ještě případné tečku/interpunkci
                     if (text[i] === '.' || text[i] === '!' || text[i] === '?') {
                         return i + 1;
                     }
-                    // Hledat další interpunkci
                     for (let k = i; k < text.length && k < i + 10; k++) {
                         if (text[k] === '.' || text[k] === '!' || text[k] === '?') {
                             return k + 1;
@@ -86,9 +73,11 @@
                 if (charCount === textPosition) {
                     htmlPosition = i + 1;
                     
-                    // Přeskočit whitespace za větou
-                    while (htmlPosition < html.length) {
+                    // Přeskočit whitespace a VŠECHNY <br> tagy za větou
+                    let keepSkipping = true;
+                    while (keepSkipping && htmlPosition < html.length) {
                         const char = html[htmlPosition];
+                        
                         if (char === ' ' || char === '\n' || char === '\r' || char === '\t') {
                             htmlPosition++;
                         } else if (char === '<') {
@@ -97,15 +86,19 @@
                             if (nextChars.startsWith('<br>') || 
                                 nextChars.startsWith('<br/>') || 
                                 nextChars.startsWith('<br ')) {
+                                // Najít konec <br> tagu a přeskočit ho
                                 const brEnd = html.indexOf('>', htmlPosition);
                                 if (brEnd !== -1) {
                                     htmlPosition = brEnd + 1;
+                                    // Pokračovat v hledání dalších <br> nebo whitespace
                                     continue;
                                 }
                             }
-                            break;
+                            // Není to <br>, tak končíme
+                            keepSkipping = false;
                         } else {
-                            break;
+                            // Není to whitespace ani <br>, končíme
+                            keepSkipping = false;
                         }
                     }
                     break;
@@ -138,7 +131,6 @@
             
             // Debug
             console.log('[Product Desc Separator] Původní text:', originalText.substring(0, 200));
-            console.log('[Product Desc Separator] Normalizovaný:', originalText.replace(/\s+/g, ' ').substring(0, 200));
             
             const sentenceEnd = findFirstSentenceEnd(originalText);
             
@@ -147,13 +139,12 @@
                 return;
             }
             
-            console.log('[Product Desc Separator] První věta končí na pozici:', sentenceEnd);
             console.log('[Product Desc Separator] První věta:', originalText.substring(0, sentenceEnd).trim());
             
             const split = splitHTMLAtPosition(originalHTML, sentenceEnd);
             
             if (!split || !split.rest) {
-                console.log('[Product Desc Separator] Nepodařilo se rozdělit HTML');
+                console.log('[Product Desc Separator] Nepodařilo se rozdělit HTML nebo není zbytek');
                 return;
             }
             
