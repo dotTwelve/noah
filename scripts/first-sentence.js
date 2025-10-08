@@ -1,145 +1,69 @@
-// Show Only First Sentence Script - Oddělení první věty se zachováním formátování
-// Skript pro oddělení první věty v elementech .p-i-desc
+// Show Only First Sentence Script
+// Skript pro zobrazení pouze první věty v elementech .p-i-desc
 // (c) 2025
 (function() {
     'use strict';
     
-    // Funkce pro nalezení konce první věty v textu
-    function findFirstSentenceEnd(text) {
-        if (!text || text.trim() === '') return -1;
+    // Funkce pro extrakci první věty
+    function getFirstSentence(text) {
+        if (!text || text.trim() === '') return '';
+        
+        // Normalizovat text (odstranit nadbytečné mezery)
+        text = text.trim().replace(/\s+/g, ' ');
         
         // Regulární výraz pro nalezení první věty
-        const sentenceRegex = /^[^.!?]*[.!?]/;
+        // Hledá tečku, vykřičník nebo otazník následované mezerou a velkým písmenem
+        // nebo na konci textu
+        const sentenceRegex = /^[^.!?]*[.!?](?=\s+[A-ZČŘŠŽÝÁÍÉÚŮŇŤĎ]|$)/;
         const match = text.match(sentenceRegex);
         
         if (match) {
-            return match[0].length;
+            return match[0].trim();
         }
         
-        return -1;
-    }
-    
-    // Funkce pro získání textového obsahu až do určité pozice
-    function getTextUpToPosition(element, targetPos) {
-        let currentPos = 0;
-        let foundNode = null;
-        let positionInNode = 0;
-        
-        // Rekurzivní procházení textových uzlů
-        function traverse(node) {
-            if (foundNode) return;
-            
-            if (node.nodeType === Node.TEXT_NODE) {
-                const textLength = node.textContent.length;
-                if (currentPos + textLength >= targetPos) {
-                    foundNode = node;
-                    positionInNode = targetPos - currentPos;
-                    return;
-                }
-                currentPos += textLength;
-            } else if (node.nodeType === Node.ELEMENT_NODE) {
-                for (let child of node.childNodes) {
-                    traverse(child);
-                    if (foundNode) return;
-                }
-            }
-        }
-        
-        traverse(element);
-        return { node: foundNode, position: positionInNode };
+        // Pokud není nalezena standardní interpunkce, vrátí celý text
+        // (pro případy, kdy text neobsahuje tečku)
+        return text;
     }
     
     // Funkce pro úpravu elementů
-    function separateFirstSentence() {
+    function truncateToFirstSentence() {
         const elements = document.querySelectorAll('.p-i-desc');
         let count = 0;
         
         elements.forEach(element => {
             // Zkontrolovat, jestli už nebyl element upraven
-            if (element.hasAttribute('data-separated')) {
+            if (element.hasAttribute('data-truncated')) {
                 return;
             }
             
-            const fullText = element.textContent;
-            const firstSentenceEnd = findFirstSentenceEnd(fullText);
+            const originalText = element.textContent;
+            const firstSentence = getFirstSentence(originalText);
             
-            if (firstSentenceEnd === -1 || firstSentenceEnd >= fullText.length) {
-                return; // Není co oddělovat
-            }
-            
-            // Najít textový uzel a pozici, kde končí první věta
-            const { node, position } = getTextUpToPosition(element, firstSentenceEnd);
-            
-            if (!node) return;
-            
-            // Uložit původní HTML
-            element.setAttribute('data-original-html', element.innerHTML);
-            element.setAttribute('data-separated', 'true');
-            
-            // Vytvořit wrapper pro první větu
-            const firstSentenceSpan = document.createElement('span');
-            firstSentenceSpan.className = 'first-sentence';
-            
-            // Rozdělit textový uzel
-            if (position < node.textContent.length) {
-                const beforeText = node.textContent.substring(0, position);
-                const afterText = node.textContent.substring(position);
+            // Pouze pokud se první věta liší od původního textu
+            if (firstSentence !== originalText && firstSentence !== '') {
+                // Uložit původní text jako atribut (pro případnou obnovu)
+                element.setAttribute('data-original-text', originalText);
+                element.setAttribute('data-truncated', 'true');
                 
-                // Vytvořit nové textové uzly
-                const beforeNode = document.createTextNode(beforeText);
-                const afterNode = document.createTextNode(afterText);
-                
-                // Najít všechny uzly před tímto uzlem
-                const walker = document.createTreeWalker(
-                    element,
-                    NodeFilter.SHOW_ALL,
-                    null
-                );
-                
-                let currentNode;
-                const nodesToWrap = [];
-                
-                while (currentNode = walker.nextNode()) {
-                    if (currentNode === node) {
-                        break;
-                    }
-                    if (currentNode.nodeType === Node.TEXT_NODE || 
-                        currentNode.nodeType === Node.ELEMENT_NODE) {
-                        nodesToWrap.push(currentNode);
-                    }
-                }
-                
-                // Vložit wrapper před první textový uzel
-                element.insertBefore(firstSentenceSpan, element.firstChild);
-                
-                // Přesunout uzly do wrapperu
-                nodesToWrap.forEach(n => {
-                    if (n.parentNode === element) {
-                        firstSentenceSpan.appendChild(n);
-                    }
-                });
-                
-                // Přidat část textu do wrapperu
-                firstSentenceSpan.appendChild(beforeNode);
-                
-                // Nahradit původní uzel zbytkem textu
-                node.parentNode.replaceChild(afterNode, node);
-                
+                // Nastavit nový text
+                element.textContent = firstSentence;
                 count++;
             }
         });
         
-        // Debug info do konzole
+        // Debug info do konzole (můžete zakomentovat)
         if (count > 0) {
-            console.log(`[First Sentence] Odděleno ${count} elementů .p-i-desc`);
+            console.log(`[First Sentence] Upraveno ${count} elementů .p-i-desc`);
         }
     }
     
     // Spustit po načtení DOM
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', separateFirstSentence);
+        document.addEventListener('DOMContentLoaded', truncateToFirstSentence);
     } else {
-        separateFirstSentence();
+        // DOM už je načtený
+        truncateToFirstSentence();
     }
     
     // Sledovat dynamicky přidávané elementy
@@ -149,10 +73,12 @@
         mutations.forEach(function(mutation) {
             if (mutation.type === 'childList') {
                 mutation.addedNodes.forEach(function(node) {
-                    if (node.nodeType === 1) {
+                    if (node.nodeType === 1) { // Element node
+                        // Zkontrolovat, jestli je to element .p-i-desc
                         if (node.classList && node.classList.contains('p-i-desc')) {
                             shouldProcess = true;
                         }
+                        // Zkontrolovat potomky
                         if (node.querySelectorAll && node.querySelectorAll('.p-i-desc').length > 0) {
                             shouldProcess = true;
                         }
@@ -162,7 +88,8 @@
         });
         
         if (shouldProcess) {
-            setTimeout(separateFirstSentence, 10);
+            // Malé zpoždění pro zajištění, že DOM je plně nastaven
+            setTimeout(truncateToFirstSentence, 10);
         }
     });
     
@@ -172,15 +99,15 @@
         subtree: true
     });
     
-    // Volitelná funkce pro obnovení původního textu
+    // Volitelná funkce pro obnovení původního textu (pro debugging)
     window.restoreOriginalText = function() {
-        const elements = document.querySelectorAll('.p-i-desc[data-separated="true"]');
+        const elements = document.querySelectorAll('.p-i-desc[data-truncated="true"]');
         elements.forEach(element => {
-            const originalHTML = element.getAttribute('data-original-html');
-            if (originalHTML) {
-                element.innerHTML = originalHTML;
-                element.removeAttribute('data-separated');
-                element.removeAttribute('data-original-html');
+            const originalText = element.getAttribute('data-original-text');
+            if (originalText) {
+                element.textContent = originalText;
+                element.removeAttribute('data-truncated');
+                element.removeAttribute('data-original-text');
             }
         });
         console.log(`[First Sentence] Obnoveno ${elements.length} elementů`);
