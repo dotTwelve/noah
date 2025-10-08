@@ -1,27 +1,52 @@
-// Show Only First Sentence Script - Oddělení první věty
-// Skript pro oddělení první věty v elementech .p-i-desc se zachováním formátování
+// Show Only First Sentence Script - Oddělení první věty se zachováním formátování
+// Skript pro oddělení první věty v elementech .p-i-desc
 // (c) 2025
 (function() {
     'use strict';
     
-    // Funkce pro extrakci první věty
-    function getFirstSentence(text) {
-        if (!text || text.trim() === '') return { first: '', rest: '' };
-        
-        // Normalizovat mezery, ale zachovat strukturu
-        text = text.trim();
+    // Funkce pro nalezení konce první věty v textu
+    function findFirstSentenceEnd(text) {
+        if (!text || text.trim() === '') return -1;
         
         // Regulární výraz pro nalezení první věty
-        const sentenceRegex = /^[^.!?]*[.!?](?=\s+[A-ZČŘŠŽÝÁÍÉÚŮŇŤĎ]|$)/;
+        const sentenceRegex = /^[^.!?]*[.!?]/;
         const match = text.match(sentenceRegex);
         
         if (match) {
-            const firstSentence = match[0].trim();
-            const restText = text.substring(match[0].length).trim();
-            return { first: firstSentence, rest: restText };
+            return match[0].length;
         }
         
-        return { first: text, rest: '' };
+        return -1;
+    }
+    
+    // Funkce pro získání textového obsahu až do určité pozice
+    function getTextUpToPosition(element, targetPos) {
+        let currentPos = 0;
+        let foundNode = null;
+        let positionInNode = 0;
+        
+        // Rekurzivní procházení textových uzlů
+        function traverse(node) {
+            if (foundNode) return;
+            
+            if (node.nodeType === Node.TEXT_NODE) {
+                const textLength = node.textContent.length;
+                if (currentPos + textLength >= targetPos) {
+                    foundNode = node;
+                    positionInNode = targetPos - currentPos;
+                    return;
+                }
+                currentPos += textLength;
+            } else if (node.nodeType === Node.ELEMENT_NODE) {
+                for (let child of node.childNodes) {
+                    traverse(child);
+                    if (foundNode) return;
+                }
+            }
+        }
+        
+        traverse(element);
+        return { node: foundNode, position: positionInNode };
     }
     
     // Funkce pro úpravu elementů
@@ -35,54 +60,72 @@
                 return;
             }
             
+            const fullText = element.textContent;
+            const firstSentenceEnd = findFirstSentenceEnd(fullText);
+            
+            if (firstSentenceEnd === -1 || firstSentenceEnd >= fullText.length) {
+                return; // Není co oddělovat
+            }
+            
+            // Najít textový uzel a pozici, kde končí první věta
+            const { node, position } = getTextUpToPosition(element, firstSentenceEnd);
+            
+            if (!node) return;
+            
             // Uložit původní HTML
-            const originalHTML = element.innerHTML;
-            const originalText = element.textContent;
+            element.setAttribute('data-original-html', element.innerHTML);
+            element.setAttribute('data-separated', 'true');
             
-            const { first, rest } = getFirstSentence(originalText);
+            // Vytvořit wrapper pro první větu
+            const firstSentenceSpan = document.createElement('span');
+            firstSentenceSpan.className = 'first-sentence';
             
-            // Pouze pokud existuje zbytek textu
-            if (rest !== '') {
-                // Najít pozici konce první věty v původním HTML
-                const firstSentenceLength = first.length;
+            // Rozdělit textový uzel
+            if (position < node.textContent.length) {
+                const beforeText = node.textContent.substring(0, position);
+                const afterText = node.textContent.substring(position);
                 
-                // Projít HTML a najít, kde končí první věta
-                let charCount = 0;
-                let htmlPos = 0;
-                let inTag = false;
+                // Vytvořit nové textové uzly
+                const beforeNode = document.createTextNode(beforeText);
+                const afterNode = document.createTextNode(afterText);
                 
-                for (let i = 0; i < originalHTML.length; i++) {
-                    if (originalHTML[i] === '<') {
-                        inTag = true;
-                    } else if (originalHTML[i] === '>') {
-                        inTag = false;
-                    } else if (!inTag) {
-                        charCount++;
-                        if (charCount === firstSentenceLength) {
-                            // Najít konec věty včetně interpunkce a mezery
-                            htmlPos = i + 1;
-                            // Přeskočit mezery za větou
-                            while (htmlPos < originalHTML.length && 
-                                   (originalHTML[htmlPos] === ' ' || originalHTML[htmlPos] === '\n')) {
-                                htmlPos++;
-                            }
-                            break;
-                        }
+                // Najít všechny uzly před tímto uzlem
+                const walker = document.createTreeWalker(
+                    element,
+                    NodeFilter.SHOW_ALL,
+                    null
+                );
+                
+                let currentNode;
+                const nodesToWrap = [];
+                
+                while (currentNode = walker.nextNode()) {
+                    if (currentNode === node) {
+                        break;
+                    }
+                    if (currentNode.nodeType === Node.TEXT_NODE || 
+                        currentNode.nodeType === Node.ELEMENT_NODE) {
+                        nodesToWrap.push(currentNode);
                     }
                 }
                 
-                if (htmlPos > 0) {
-                    const firstPart = originalHTML.substring(0, htmlPos);
-                    const restPart = originalHTML.substring(htmlPos);
-                    
-                    // Uložit původní HTML jako atribut
-                    element.setAttribute('data-original-html', originalHTML);
-                    element.setAttribute('data-separated', 'true');
-                    
-                    // Vytvořit novou strukturu
-                    element.innerHTML = `<span class="first-sentence">${firstPart}</span>${restPart}`;
-                    count++;
-                }
+                // Vložit wrapper před první textový uzel
+                element.insertBefore(firstSentenceSpan, element.firstChild);
+                
+                // Přesunout uzly do wrapperu
+                nodesToWrap.forEach(n => {
+                    if (n.parentNode === element) {
+                        firstSentenceSpan.appendChild(n);
+                    }
+                });
+                
+                // Přidat část textu do wrapperu
+                firstSentenceSpan.appendChild(beforeNode);
+                
+                // Nahradit původní uzel zbytkem textu
+                node.parentNode.replaceChild(afterNode, node);
+                
+                count++;
             }
         });
         
