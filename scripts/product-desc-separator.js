@@ -54,6 +54,40 @@
         return -1;
     }
     
+    // Funkce pro odstranění trailing <br> tagů z HTML
+    function removeTrailingBrTags(html) {
+        let result = html;
+        
+        // Opakovaně odstraňovat <br> tagy a whitespace z konce
+        let changed = true;
+        while (changed) {
+            changed = false;
+            
+            // Odstranit whitespace z konce
+            const withoutTrailingSpace = result.replace(/[\s\n\r\t]+$/, '');
+            if (withoutTrailingSpace !== result) {
+                result = withoutTrailingSpace;
+                changed = true;
+            }
+            
+            // Odstranit <br> z konce (různé varianty)
+            const patterns = [
+                /<br\s*\/?>$/i,
+                /<br\s+\/?>$/i
+            ];
+            
+            for (const pattern of patterns) {
+                if (pattern.test(result)) {
+                    result = result.replace(pattern, '');
+                    changed = true;
+                    break;
+                }
+            }
+        }
+        
+        return result;
+    }
+    
     // Funkce pro rozdělení HTML na první větu a zbytek
     function splitHTMLAtPosition(html, textPosition) {
         let charCount = 0;
@@ -90,14 +124,11 @@
                                 const brEnd = html.indexOf('>', htmlPosition);
                                 if (brEnd !== -1) {
                                     htmlPosition = brEnd + 1;
-                                    // Pokračovat v hledání dalších <br> nebo whitespace
                                     continue;
                                 }
                             }
-                            // Není to <br>, tak končíme
                             keepSkipping = false;
                         } else {
-                            // Není to whitespace ani <br>, končíme
                             keepSkipping = false;
                         }
                     }
@@ -107,8 +138,13 @@
         }
         
         if (htmlPosition > 0 && htmlPosition < html.length) {
+            let firstPart = html.substring(0, htmlPosition);
+            
+            // ODSTRANIT trailing <br> tagy z první části
+            firstPart = removeTrailingBrTags(firstPart);
+            
             return {
-                first: html.substring(0, htmlPosition).trim(),
+                first: firstPart.trim(),
                 rest: html.substring(htmlPosition).trim()
             };
         }
