@@ -9,19 +9,59 @@
     function findFirstSentenceEnd(text) {
         if (!text || text.trim() === '') return -1;
         
-        // NEMĚNIT původní text - zachovat všechny mezery a nové řádky
-        const trimmedText = text.trim();
+        // NORMALIZOVAT pro detekci věty - nahradit všechny whitespace jednou mezerou
+        const normalizedText = text.trim().replace(/\s+/g, ' ');
         
         // Vylepšený regex pro nalezení konce první věty
         // Hledá tečku, vykřičník nebo otazník následované:
-        // - whitespace (mezera, nový řádek, tab) + velké písmeno (včetně českých znaků)
+        // - mezerou + velké písmeno (včetně českých znaků)
         // - nebo konec řetězce
         const sentenceRegex = /[.!?](?=\s+[A-ZČŘŠŽÝÁÍÉÚŮŇŤĎĚÓĹĽ]|\s*$)/;
-        const match = trimmedText.match(sentenceRegex);
+        const match = normalizedText.match(sentenceRegex);
         
         if (match) {
-            // Vrátit pozici za tečkou
-            return match.index + 1;
+            // Vrátit pozici za tečkou v NORMALIZOVANÉM textu
+            const posInNormalized = match.index + 1;
+            
+            // Teď musíme najít odpovídající pozici v PŮVODNÍM textu
+            // Projdeme původní text a počítáme ne-whitespace znaky
+            let charCountInOriginal = 0;
+            let nonWhitespaceCount = 0;
+            
+            for (let i = 0; i < text.length; i++) {
+                if (!/\s/.test(text[i])) {
+                    nonWhitespaceCount++;
+                }
+                charCountInOriginal++;
+                
+                // Spočítat, kolik ne-whitespace znaků máme v normalizovaném textu do této pozice
+                let nonWhitespaceInNormalized = 0;
+                let whitespaceInNormalized = 0;
+                for (let j = 0; j < posInNormalized; j++) {
+                    if (normalizedText[j] === ' ') {
+                        whitespaceInNormalized++;
+                    } else {
+                        nonWhitespaceInNormalized++;
+                    }
+                }
+                
+                // Pokud máme stejný počet ne-whitespace znaků, našli jsme pozici
+                if (nonWhitespaceCount === nonWhitespaceInNormalized) {
+                    // Přidat ještě případné tečku/interpunkci
+                    if (text[i] === '.' || text[i] === '!' || text[i] === '?') {
+                        return i + 1;
+                    }
+                    // Hledat další interpunkci
+                    for (let k = i; k < text.length && k < i + 10; k++) {
+                        if (text[k] === '.' || text[k] === '!' || text[k] === '?') {
+                            return k + 1;
+                        }
+                    }
+                    return charCountInOriginal;
+                }
+            }
+            
+            return charCountInOriginal;
         }
         
         return -1;
@@ -32,25 +72,21 @@
         let charCount = 0;
         let htmlPosition = 0;
         let inTag = false;
-        let tagContent = '';
         
         // Projít HTML znak po znaku
         for (let i = 0; i < html.length; i++) {
             if (html[i] === '<') {
                 inTag = true;
-                tagContent = '<';
             } else if (inTag) {
-                tagContent += html[i];
                 if (html[i] === '>') {
                     inTag = false;
-                    tagContent = '';
                 }
             } else {
                 charCount++;
                 if (charCount === textPosition) {
                     htmlPosition = i + 1;
                     
-                    // Přeskočit mezery, taby a nové řádky za větou
+                    // Přeskočit whitespace za větou
                     while (htmlPosition < html.length) {
                         const char = html[htmlPosition];
                         if (char === ' ' || char === '\n' || char === '\r' || char === '\t') {
@@ -61,7 +97,6 @@
                             if (nextChars.startsWith('<br>') || 
                                 nextChars.startsWith('<br/>') || 
                                 nextChars.startsWith('<br ')) {
-                                // Najít konec <br> tagu
                                 const brEnd = html.indexOf('>', htmlPosition);
                                 if (brEnd !== -1) {
                                     htmlPosition = brEnd + 1;
@@ -94,7 +129,6 @@
         let count = 0;
         
         elements.forEach(element => {
-            // Zkontrolovat, jestli už nebyl element upraven
             if (element.hasAttribute('data-separated')) {
                 return;
             }
@@ -102,20 +136,20 @@
             const originalHTML = element.innerHTML;
             const originalText = element.textContent;
             
-            // Najít konec první věty
+            // Debug
+            console.log('[Product Desc Separator] Původní text:', originalText.substring(0, 200));
+            console.log('[Product Desc Separator] Normalizovaný:', originalText.replace(/\s+/g, ' ').substring(0, 200));
+            
             const sentenceEnd = findFirstSentenceEnd(originalText);
             
             if (sentenceEnd === -1) {
-                // Není nalezena tečka - celý text je jedna věta nebo chyba
-                console.log('[Product Desc Separator] Nenalezena první věta v:', originalText.substring(0, 100));
+                console.log('[Product Desc Separator] Nenalezena první věta');
                 return;
             }
             
-            // Debug - vypsat nalezenou pozici
             console.log('[Product Desc Separator] První věta končí na pozici:', sentenceEnd);
             console.log('[Product Desc Separator] První věta:', originalText.substring(0, sentenceEnd).trim());
             
-            // Rozdělit HTML
             const split = splitHTMLAtPosition(originalHTML, sentenceEnd);
             
             if (!split || !split.rest) {
@@ -123,20 +157,16 @@
                 return;
             }
             
-            // Označit element jako zpracovaný
             element.setAttribute('data-separated', 'true');
             element.setAttribute('data-original-html', originalHTML);
             
-            // Vytvořit nový obsah
             element.innerHTML = '';
             
-            // Vytvořit <p> element pro první větu s třídou fs-4 bg-de
             const firstSentenceParagraph = document.createElement('p');
             firstSentenceParagraph.className = 'fs-4 bg-de';
             firstSentenceParagraph.innerHTML = split.first;
             element.appendChild(firstSentenceParagraph);
             
-            // Přidat zbytek textu (také v <p> elementu)
             const restParagraph = document.createElement('p');
             restParagraph.innerHTML = split.rest;
             element.appendChild(restParagraph);
@@ -144,20 +174,17 @@
             count++;
         });
         
-        // Debug info do konzole
         if (count > 0) {
             console.log(`[Product Desc Separator] Upraveno ${count} elementů .pd-shrt-desc`);
         }
     }
     
-    // Spustit po načtení DOM
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', separateFirstSentence);
     } else {
         separateFirstSentence();
     }
     
-    // Sledovat dynamicky přidávané elementy
     const observer = new MutationObserver(function(mutations) {
         let shouldProcess = false;
         
@@ -181,7 +208,6 @@
         }
     });
     
-    // Sledovat změny v celém dokumentu
     if (document.body) {
         observer.observe(document.body, {
             childList: true,
@@ -189,7 +215,6 @@
         });
     }
     
-    // Volitelná funkce pro obnovení původního textu (pro debugging)
     window.restoreOriginalDesc = function() {
         const elements = document.querySelectorAll('.pd-shrt-desc[data-separated="true"]');
         elements.forEach(element => {
