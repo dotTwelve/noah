@@ -9,15 +9,19 @@
     function findFirstSentenceEnd(text) {
         if (!text || text.trim() === '') return -1;
         
-        // Normalizovat mezery pro hledání
-        text = text.trim().replace(/\s+/g, ' ');
+        // NEMĚNIT původní text - zachovat všechny mezery a nové řádky
+        const trimmedText = text.trim();
         
-        // Regulární výraz pro nalezení konce první věty
-        const sentenceRegex = /^[^.!?]*[.!?]/;
-        const match = text.match(sentenceRegex);
+        // Vylepšený regex pro nalezení konce první věty
+        // Hledá tečku, vykřičník nebo otazník následované:
+        // - whitespace (mezera, nový řádek, tab) + velké písmeno (včetně českých znaků)
+        // - nebo konec řetězce
+        const sentenceRegex = /[.!?](?=\s+[A-ZČŘŠŽÝÁÍÉÚŮŇŤĎĚÓĹĽ]|\s*$)/;
+        const match = trimmedText.match(sentenceRegex);
         
         if (match) {
-            return match[0].length;
+            // Vrátit pozici za tečkou
+            return match.index + 1;
         }
         
         return -1;
@@ -28,40 +32,39 @@
         let charCount = 0;
         let htmlPosition = 0;
         let inTag = false;
+        let tagContent = '';
         
         // Projít HTML znak po znaku
         for (let i = 0; i < html.length; i++) {
             if (html[i] === '<') {
                 inTag = true;
-            } else if (html[i] === '>') {
-                inTag = false;
-            } else if (!inTag) {
+                tagContent = '<';
+            } else if (inTag) {
+                tagContent += html[i];
+                if (html[i] === '>') {
+                    inTag = false;
+                    tagContent = '';
+                }
+            } else {
                 charCount++;
                 if (charCount === textPosition) {
-                    // Najít konец věty včetně mezer za ní
                     htmlPosition = i + 1;
-                    // Přeskočit mezery a zalomení za větou
+                    
+                    // Přeskočit mezery, taby a nové řádky za větou
                     while (htmlPosition < html.length) {
                         const char = html[htmlPosition];
                         if (char === ' ' || char === '\n' || char === '\r' || char === '\t') {
                             htmlPosition++;
                         } else if (char === '<') {
-                            // Zkontrolovat jestli je to <br>
-                            if (html.substring(htmlPosition, htmlPosition + 4).toLowerCase() === '<br>' ||
-                                html.substring(htmlPosition, htmlPosition + 5).toLowerCase() === '<br/>' ||
-                                html.substring(htmlPosition, htmlPosition + 6).toLowerCase() === '<br />') {
+                            // Zkontrolovat jestli je to <br> tag
+                            const nextChars = html.substring(htmlPosition, htmlPosition + 10).toLowerCase();
+                            if (nextChars.startsWith('<br>') || 
+                                nextChars.startsWith('<br/>') || 
+                                nextChars.startsWith('<br ')) {
                                 // Najít konec <br> tagu
                                 const brEnd = html.indexOf('>', htmlPosition);
                                 if (brEnd !== -1) {
                                     htmlPosition = brEnd + 1;
-                                    // Přeskočit i další whitespace za <br>
-                                    while (htmlPosition < html.length && 
-                                           (html[htmlPosition] === ' ' || 
-                                            html[htmlPosition] === '\n' || 
-                                            html[htmlPosition] === '\r' || 
-                                            html[htmlPosition] === '\t')) {
-                                        htmlPosition++;
-                                    }
                                     continue;
                                 }
                             }
@@ -102,15 +105,21 @@
             // Najít konec první věty
             const sentenceEnd = findFirstSentenceEnd(originalText);
             
-            if (sentenceEnd === -1 || sentenceEnd >= originalText.trim().length) {
-                // Není co oddělovat nebo je to jen jedna věta
+            if (sentenceEnd === -1) {
+                // Není nalezena tečka - celý text je jedna věta nebo chyba
+                console.log('[Product Desc Separator] Nenalezena první věta v:', originalText.substring(0, 100));
                 return;
             }
+            
+            // Debug - vypsat nalezenou pozici
+            console.log('[Product Desc Separator] První věta končí na pozici:', sentenceEnd);
+            console.log('[Product Desc Separator] První věta:', originalText.substring(0, sentenceEnd).trim());
             
             // Rozdělit HTML
             const split = splitHTMLAtPosition(originalHTML, sentenceEnd);
             
             if (!split || !split.rest) {
+                console.log('[Product Desc Separator] Nepodařilo se rozdělit HTML');
                 return;
             }
             
