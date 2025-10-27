@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="HDO Tarif">
+    <meta name="description" content="Sledování vysokého a nízkého tarifu elektřiny - ČEZ Distribuce">
+    <title>HDO Tarif - NT/VT</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .time-display {
+            font-size: 18px;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .tariff-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .current-tariff {
+            text-align: center;
+        }
+
+        .tariff-label {
+            font-size: 16px;
+            opacity: 0.8;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .tariff-value {
+            font-size: 72px;
+            font-weight: 700;
+            margin: 20px 0;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .tariff-value.nt {
+            color: #4ade80;
+        }
+
+        .tariff-value.vt {
+            color: #fbbf24;
+        }
+
+        .tariff-description {
+            font-size: 14px;
+            opacity: 0.7;
+        }
+
+        .next-change {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .next-change-label {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .next-change-time {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .schedule-toggle {
+            display: flex;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+
+        .schedule-toggle button {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            opacity: 0.6;
+        }
+
+        .schedule-toggle button.active {
+            background: rgba(255, 255, 255, 0.25);
+            opacity: 1;
+        }
+
+        .timeline {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .timeline-header {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .timeline-bars {
+            position: relative;
+            height: 60px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .timeline-bar {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .timeline-bar.nt {
+            background: linear-gradient(90deg, #4ade80, #22c55e);
+        }
+
+        .timeline-bar.vt {
+            background: linear-gradient(90deg, #fbbf24, #f59e0b);
+        }
+
+        .timeline-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 11px;
+            opacity: 0.7;
+        }
+
+        .current-time-marker {
+            position: absolute;
+            top: -5px;
+            width: 2px;
+            height: calc(100% + 10px);
+            background: white;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+            transition: left 1s ease;
+            z-index: 10;
+        }
+
+        .current-time-marker::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -4px;
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+
+        .schedule-list {
+            margin-top: 20px;
+        }
+
+        .schedule-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .schedule-item.nt {
+            border-left: 4px solid #4ade80;
+        }
+
+        .schedule-item.vt {
+            border-left: 4px solid #fbbf24;
+        }
+
+        .schedule-time {
+            font-weight: 600;
+        }
+
+        .schedule-type {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 12px;
+            opacity: 0.6;
+        }
+
+        .footer a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+        }
+
+        .footer a:hover {
+            opacity: 1;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>HDO Tarif</h1>
+            <div class="time-display" id="currentTime"></div>
+        </div>
+
+        <div class="tariff-card">
+            <div class="current-tariff">
+                <div class="tariff-label">Aktuální tarif</div>
+                <div class="tariff-value" id="currentTariff">--</div>
+                <div class="tariff-description" id="tariffDescription"></div>
+                
+                <div class="next-change">
+                    <div class="next-change-label">Další změna</div>
+                    <div class="next-change-time" id="nextChange">--:--</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="schedule-toggle">
+            <button class="active" onclick="setScheduleType('p1p2')" id="btnP1P2">P1/P2 (Vytápění)</button>
+            <button onclick="setScheduleType('p3')" id="btnP3">P3 (8h)</button>
+        </div>
+
+        <div class="timeline">
+            <div class="timeline-header">
+                <span>Dnes</span>
+                <span id="todayDate"></span>
+            </div>
+            <div class="timeline-bars" id="timelineBars">
+                <div class="current-time-marker" id="timeMarker"></div>
+            </div>
+            <div class="timeline-labels">
+                <span>0:00</span>
+                <span>6:00</span>
+                <span>12:00</span>
+                <span>18:00</span>
+                <span>24:00</span>
+            </div>
+
+            <div class="schedule-list" id="scheduleList"></div>
+        </div>
+
+        <div class="footer">
+            ČEZ Distribuce • Sazba D45d<br>
+            <a href="https://github.com/dotTwelve/noah" target="_blank">GitHub</a>
+        </div>
+    </div>
+
+    <script>
+        // HDO Schedule data - ČEZ Distribuce, Oblast Sever
+        // Sazba D45d - Akumulační vytápění
+        const schedules = {
+            p1p2: {
+                // Monday, Wednesday, Thursday, Friday
+                weekday: [
+                    {start: "00:00", end: "07:51", type: "nt"},
+                    {start: "07:51", end: "08:50", type: "vt"},
+                    {start: "08:50", end: "11:16", type: "nt"},
+                    {start: "11:16", end: "12:15", type: "vt"},
+                    {start: "12:15", end: "18:05", type: "nt"},
+                    {start: "18:05", end: "19:05", type: "vt"},
+                    {start: "19:05", end: "20:50", type: "nt"},
+                    {start: "20:50", end: "21:50", type: "vt"},
+                    {start: "21:50", end: "24:00", type: "nt"}
+                ],
+                // Tuesday, Saturday, Sunday
+                weekend: [
+                    {start: "00:00", end: "08:05", type: "nt"},
+                    {start: "08:05", end: "09:05", type: "vt"},
+                    {start: "09:05", end: "12:05", type: "nt"},
+                    {start: "12:05", end: "13:04", type: "vt"},
+                    {start: "13:04", end: "15:01", type: "nt"},
+                    {start: "15:01", end: "16:00", type: "vt"},
+                    {start: "16:00", end: "19:01", type: "nt"},
+                    {start: "19:01", end: "20:00", type: "vt"},
+                    {start: "20:00", end: "24:00", type: "nt"}
+                ]
+            },
+            p3: {
+                // Monday, Wednesday, Thursday, Friday
+                weekday: [
+                    {start: "00:00", end: "04:46", type: "nt"},
+                    {start: "04:46", end: "12:45", type: "vt"},
+                    {start: "12:45", end: "14:46", type: "nt"},
+                    {start: "14:46", end: "22:45", type: "vt"},
+                    {start: "22:45", end: "24:00", type: "nt"}
+                ],
+                // Tuesday, Saturday, Sunday
+                weekend: [
+                    {start: "00:00", end: "04:21", type: "nt"},
+                    {start: "04:21", end: "16:40", type: "vt"},
+                    {start: "16:40", end: "18:41", type: "nt"},
+                    {start: "18:41", end: "22:20", type: "vt"},
+                    {start: "22:20", end: "24:00", type: "nt"}
+                ]
+            }
+        };
+
+        let currentScheduleType = 'p1p2';
+
+        function timeToMinutes(timeStr) {
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            return hours * 60 + minutes;
+        }
+
+        function minutesToTime(minutes) {
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+        }
+
+        function getDaySchedule(scheduleType) {
+            const now = new Date();
+            const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+            
+            // For P1/P2: Tuesday(2), Saturday(6), Sunday(0) use weekend schedule
+            // For P3: Tuesday(2), Saturday(6), Sunday(0) use weekend schedule
+            const isWeekend = dayOfWeek === 0 || dayOfWeek === 2 || dayOfWeek === 6;
+            
+            return isWeekend ? schedules[scheduleType].weekend : schedules[scheduleType].weekday;
+        }
+
+        function getCurrentTariff() {
+            const now = new Date();
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+            const schedule = getDaySchedule(currentScheduleType);
+
+            for (let period of schedule) {
+                const startMinutes = timeToMinutes(period.start);
+                const endMinutes = timeToMinutes(period.end);
+                
+                if (currentMinutes >= startMinutes && currentMinutes < endMinutes) {
+                    return {
+                        type: period.type,
+                        end: period.end
+                    };
+                }
+            }
+            
+            return {type: 'nt', end: '00:00'};
+        }
+
+        function getNextChange() {
+            const now = new Date();
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+            const schedule = getDaySchedule(currentScheduleType);
+
+            for (let period of schedule) {
+                const endMinutes = timeToMinutes(period.end);
+                if (currentMinutes < endMinutes) {
+                    return period.end;
+                }
+            }
+            
+            // If we're past all periods, next change is first period of next day
+            return schedule[0].end;
+        }
+
+        function updateDisplay() {
+            const now = new Date();
+            
+            // Update current time
+            document.getElementById('currentTime').textContent = 
+                now.toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'long' }) + 
+                ' • ' + 
+                now.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+            // Update current tariff
+            const tariff = getCurrentTariff();
+            const tariffElement = document.getElementById('currentTariff');
+            tariffElement.textContent = tariff.type.toUpperCase();
+            tariffElement.className = 'tariff-value ' + tariff.type;
+            
+            document.getElementById('tariffDescription').textContent = 
+                tariff.type === 'nt' ? 'Nízký tarif - Levnější elektřina' : 'Vysoký tarif';
+
+            // Update next change
+            document.getElementById('nextChange').textContent = getNextChange();
+
+            // Update today's date
+            document.getElementById('todayDate').textContent = 
+                now.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' });
+
+            // Update timeline
+            updateTimeline();
+        }
+
+        function updateTimeline() {
+            const schedule = getDaySchedule(currentScheduleType);
+            const barsContainer = document.getElementById('timelineBars');
+            
+            // Clear existing bars (except marker)
+            const existingBars = barsContainer.querySelectorAll('.timeline-bar');
+            existingBars.forEach(bar => bar.remove());
+
+            // Add new bars
+            schedule.forEach(period => {
+                const bar = document.createElement('div');
+                bar.className = 'timeline-bar ' + period.type;
+                
+                const startPercent = (timeToMinutes(period.start) / 1440) * 100;
+                const endPercent = (timeToMinutes(period.end) / 1440) * 100;
+                
+                bar.style.left = startPercent + '%';
+                bar.style.width = (endPercent - startPercent) + '%';
+                
+                barsContainer.insertBefore(bar, document.getElementById('timeMarker'));
+            });
+
+            // Update current time marker
+            const now = new Date();
+            const currentPercent = ((now.getHours() * 60 + now.getMinutes()) / 1440) * 100;
+            document.getElementById('timeMarker').style.left = currentPercent + '%';
+
+            // Update schedule list
+            updateScheduleList();
+        }
+
+        function updateScheduleList() {
+            const schedule = getDaySchedule(currentScheduleType);
+            const listContainer = document.getElementById('scheduleList');
+            listContainer.innerHTML = '';
+
+            schedule.forEach(period => {
+                const item = document.createElement('div');
+                item.className = 'schedule-item ' + period.type;
+                item.innerHTML = `
+                    <span class="schedule-time">${period.start} - ${period.end}</span>
+                    <span class="schedule-type">${period.type === 'nt' ? 'Nízký tarif' : 'Vysoký tarif'}</span>
+                `;
+                listContainer.appendChild(item);
+            });
+        }
+
+        function setScheduleType(type) {
+            currentScheduleType = type;
+            
+            // Update button states
+            document.getElementById('btnP1P2').classList.toggle('active', type === 'p1p2');
+            document.getElementById('btnP3').classList.toggle('active', type === 'p3');
+            
+            // Update display
+            updateDisplay();
+        }
+
+        // Initialize and update every second
+        updateDisplay();
+        setInterval(updateDisplay, 1000);
+
+        // Register service worker for offline functionality
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('data:text/javascript,console.log("SW")').catch(() => {});
+        }
+    </script>
+</body>
+</html>
