@@ -363,6 +363,17 @@
             opacity: 1;
         }
 
+        .exception-badge {
+            display: inline-block;
+            background: rgba(251, 191, 36, 0.3);
+            border: 1px solid #fbbf24;
+            border-radius: 12px;
+            padding: 4px 12px;
+            font-size: 12px;
+            margin-left: 10px;
+            font-weight: 500;
+        }
+
         @media (prefers-color-scheme: dark) {
             body {
                 background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
@@ -448,7 +459,7 @@
 
         <div class="timeline">
             <div class="timeline-header">
-                <span>Dnes</span>
+                <span id="todayLabel">Dnes</span>
                 <span id="todayDate"></span>
             </div>
             <div class="timeline-bars" id="timelineBars">
@@ -475,7 +486,7 @@
         // HDO Schedule data - ČEZ Distribuce, Oblast Sever
         // Sazba D45d - Akumulační vytápění - P1/P2 only
         const schedule = {
-            // Monday, Wednesday, Thursday, Friday
+            // Monday, Tuesday, Wednesday, Thursday, Friday
             weekday: [
                 {start: "00:00", end: "07:51", type: "nt"},
                 {start: "07:51", end: "08:50", type: "vt"},
@@ -487,7 +498,7 @@
                 {start: "20:50", end: "21:50", type: "vt"},
                 {start: "21:50", end: "24:00", type: "nt"}
             ],
-            // Tuesday, Saturday, Sunday
+            // Saturday, Sunday
             weekend: [
                 {start: "00:00", end: "08:05", type: "nt"},
                 {start: "08:05", end: "09:05", type: "vt"},
@@ -498,7 +509,11 @@
                 {start: "16:00", end: "19:01", type: "nt"},
                 {start: "19:01", end: "20:00", type: "vt"},
                 {start: "20:00", end: "24:00", type: "nt"}
-            ]
+            ],
+            // Exceptions - specific dates with weekend schedule
+            exceptions: {
+                "2025-11-17": "weekend"  // Monday with weekend schedule
+            }
         };
 
         function timeToMinutes(timeStr) {
@@ -514,8 +529,20 @@
 
         function getDaySchedule() {
             const now = new Date();
+            const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD format
+            
+            // Check for exceptions first
+            if (schedule.exceptions[dateStr]) {
+                const exceptionLabel = document.getElementById('todayLabel');
+                exceptionLabel.innerHTML = 'Dnes <span class="exception-badge">⚠️ Výjimka</span>';
+                return schedule[schedule.exceptions[dateStr]];
+            } else {
+                document.getElementById('todayLabel').textContent = 'Dnes';
+            }
+            
+            // Regular schedule: weekend is only Saturday (6) and Sunday (0)
             const dayOfWeek = now.getDay();
-            const isWeekend = dayOfWeek === 0 || dayOfWeek === 2 || dayOfWeek === 6;
+            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
             return isWeekend ? schedule.weekend : schedule.weekday;
         }
 
