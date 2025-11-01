@@ -59,6 +59,7 @@
 
         .current-tariff {
             text-align: center;
+            margin-bottom: 25px;
         }
 
         .tariff-label {
@@ -110,159 +111,31 @@
             font-weight: 600;
         }
 
-        .section-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 15px;
-            opacity: 0.9;
-        }
-
-        .appliance-optimizer {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-
-        .appliance-card {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 15px;
-        }
-
-        .appliance-card:last-child {
-            margin-bottom: 0;
-        }
-
-        .appliance-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .appliance-name {
-            font-size: 18px;
-            font-weight: 600;
-        }
-
-        .appliance-duration {
+        .countdown {
             font-size: 14px;
-            opacity: 0.7;
-        }
-
-        .recommendation {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 12px;
-            font-weight: 500;
-        }
-
-        .recommendation.excellent {
-            background: rgba(74, 222, 128, 0.2);
-            border-left: 4px solid #4ade80;
-        }
-
-        .recommendation.good {
-            background: rgba(251, 191, 36, 0.2);
-            border-left: 4px solid #fbbf24;
-        }
-
-        .recommendation.poor {
-            background: rgba(248, 113, 113, 0.2);
-            border-left: 4px solid #f87171;
-        }
-
-        .recommendation-icon {
-            font-size: 24px;
-        }
-
-        .recommendation-text {
-            flex: 1;
-        }
-
-        .recommendation-main {
-            font-size: 16px;
-            margin-bottom: 3px;
-        }
-
-        .recommendation-detail {
-            font-size: 13px;
             opacity: 0.8;
+            margin-top: 5px;
         }
 
-        .nt-percentage {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 12px;
-        }
-
-        .percentage-bar {
-            flex: 1;
-            height: 8px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .percentage-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #4ade80, #22c55e);
-            transition: width 0.3s ease;
-        }
-
-        .percentage-text {
-            font-size: 14px;
-            font-weight: 600;
-            min-width: 50px;
-            text-align: right;
-        }
-
-        .best-time {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 10px 12px;
-            font-size: 13px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .best-time-label {
-            opacity: 0.7;
-        }
-
-        .best-time-value {
-            font-weight: 600;
-        }
-
-        .timeline {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        .timeline-section {
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .timeline-header {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            opacity: 0.9;
         }
 
         .timeline-bars {
             position: relative;
-            height: 60px;
+            height: 50px;
             background: rgba(0, 0, 0, 0.2);
             border-radius: 10px;
             overflow: hidden;
@@ -286,7 +159,7 @@
         .timeline-labels {
             display: flex;
             justify-content: space-between;
-            margin-top: 10px;
+            margin-top: 8px;
             font-size: 11px;
             opacity: 0.7;
         }
@@ -314,27 +187,63 @@
             box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
         }
 
+        .schedule-toggle {
+            margin-top: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+
+        .schedule-toggle:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .schedule-toggle-icon {
+            transition: transform 0.3s;
+        }
+
+        .schedule-toggle-icon.open {
+            transform: rotate(180deg);
+        }
+
         .schedule-list {
-            margin-top: 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .schedule-list.open {
+            max-height: 600px;
         }
 
         .schedule-item {
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 12px 15px;
-            margin-bottom: 8px;
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-bottom: 6px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 14px;
+            font-size: 13px;
         }
 
         .schedule-item.nt {
-            border-left: 4px solid #4ade80;
+            border-left: 3px solid #4ade80;
         }
 
         .schedule-item.vt {
-            border-left: 4px solid #fbbf24;
+            border-left: 3px solid #fbbf24;
         }
 
         .schedule-time {
@@ -342,8 +251,123 @@
         }
 
         .schedule-type {
-            font-size: 12px;
+            font-size: 11px;
             opacity: 0.8;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+
+        .appliance-optimizer {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .appliance-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .appliance-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+        }
+
+        .appliance-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .appliance-icon {
+            font-size: 24px;
+        }
+
+        .appliance-info {
+            flex: 1;
+        }
+
+        .appliance-name {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .appliance-duration {
+            font-size: 11px;
+            opacity: 0.7;
+        }
+
+        .nt-percentage {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .percentage-bar {
+            flex: 1;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .percentage-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4ade80, #22c55e);
+            transition: width 0.3s ease;
+        }
+
+        .percentage-text {
+            font-size: 13px;
+            font-weight: 700;
+            min-width: 40px;
+            text-align: right;
+        }
+
+        .recommendation-status {
+            font-size: 20px;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .recommendation-text {
+            font-size: 12px;
+            text-align: center;
+            line-height: 1.4;
+            opacity: 0.9;
+        }
+
+        .best-time {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            padding: 8px;
+            font-size: 11px;
+            text-align: center;
+            margin-top: 8px;
+        }
+
+        .best-time-label {
+            opacity: 0.7;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .best-time-value {
+            font-weight: 600;
+            font-size: 12px;
         }
 
         .footer {
@@ -374,6 +398,12 @@
             font-weight: 500;
         }
 
+        @media (max-width: 500px) {
+            .appliance-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         @media (prefers-color-scheme: dark) {
             body {
                 background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
@@ -397,83 +427,88 @@
                 <div class="next-change">
                     <div class="next-change-label">Další změna</div>
                     <div class="next-change-time" id="nextChange">--:--</div>
+                    <div class="countdown" id="countdown">--:--:--</div>
                 </div>
+            </div>
+
+            <div class="timeline-section">
+                <div class="timeline-header">
+                    <span id="todayLabel">Dnes</span>
+                    <span id="todayDate"></span>
+                </div>
+                <div class="timeline-bars" id="timelineBars">
+                    <div class="current-time-marker" id="timeMarker"></div>
+                </div>
+                <div class="timeline-labels">
+                    <span>0:00</span>
+                    <span>6:00</span>
+                    <span>12:00</span>
+                    <span>18:00</span>
+                    <span>24:00</span>
+                </div>
+
+                <button class="schedule-toggle" id="scheduleToggle">
+                    <span>Časy spínání</span>
+                    <span class="schedule-toggle-icon" id="scheduleIcon">▼</span>
+                </button>
+                <div class="schedule-list" id="scheduleList"></div>
             </div>
         </div>
 
         <div class="appliance-optimizer">
             <div class="section-title">⚡ Optimalizace spotřeby</div>
             
-            <div class="appliance-card">
-                <div class="appliance-header">
-                    <div class="appliance-name">🍽️ Myčka</div>
-                    <div class="appliance-duration">~ 3 hodiny</div>
-                </div>
-                
-                <div id="dishwasherRecommendation" class="recommendation">
-                    <div class="recommendation-icon">⏳</div>
-                    <div class="recommendation-text">
-                        <div class="recommendation-main">Načítání...</div>
+            <div class="appliance-grid">
+                <div class="appliance-card">
+                    <div class="appliance-header">
+                        <div class="appliance-icon">🍽️</div>
+                        <div class="appliance-info">
+                            <div class="appliance-name">Myčka</div>
+                            <div class="appliance-duration">~ 3 hodiny</div>
+                        </div>
+                    </div>
+                    
+                    <div class="recommendation-status" id="dishwasherStatus">⏳</div>
+                    <div class="recommendation-text" id="dishwasherText">Načítání...</div>
+                    
+                    <div class="nt-percentage">
+                        <div class="percentage-bar">
+                            <div id="dishwasherBar" class="percentage-fill" style="width: 0%"></div>
+                        </div>
+                        <div id="dishwasherPercent" class="percentage-text">0%</div>
+                    </div>
+                    
+                    <div class="best-time">
+                        <span class="best-time-label">Nejlepší čas</span>
+                        <div id="dishwasherBestTime" class="best-time-value">--:--</div>
                     </div>
                 </div>
-                
-                <div class="nt-percentage">
-                    <div class="percentage-bar">
-                        <div id="dishwasherBar" class="percentage-fill" style="width: 0%"></div>
-                    </div>
-                    <div id="dishwasherPercent" class="percentage-text">0%</div>
-                </div>
-                
-                <div class="best-time">
-                    <span class="best-time-label">Nejlepší čas:</span>
-                    <span id="dishwasherBestTime" class="best-time-value">--:--</span>
-                </div>
-            </div>
 
-            <div class="appliance-card">
-                <div class="appliance-header">
-                    <div class="appliance-name">👕 Pračka</div>
-                    <div class="appliance-duration">~ 2 hodiny</div>
-                </div>
-                
-                <div id="washingRecommendation" class="recommendation">
-                    <div class="recommendation-icon">⏳</div>
-                    <div class="recommendation-text">
-                        <div class="recommendation-main">Načítání...</div>
+                <div class="appliance-card">
+                    <div class="appliance-header">
+                        <div class="appliance-icon">👕</div>
+                        <div class="appliance-info">
+                            <div class="appliance-name">Pračka</div>
+                            <div class="appliance-duration">~ 2 hodiny</div>
+                        </div>
+                    </div>
+                    
+                    <div class="recommendation-status" id="washingStatus">⏳</div>
+                    <div class="recommendation-text" id="washingText">Načítání...</div>
+                    
+                    <div class="nt-percentage">
+                        <div class="percentage-bar">
+                            <div id="washingBar" class="percentage-fill" style="width: 0%"></div>
+                        </div>
+                        <div id="washingPercent" class="percentage-text">0%</div>
+                    </div>
+                    
+                    <div class="best-time">
+                        <span class="best-time-label">Nejlepší čas</span>
+                        <div id="washingBestTime" class="best-time-value">--:--</div>
                     </div>
                 </div>
-                
-                <div class="nt-percentage">
-                    <div class="percentage-bar">
-                        <div id="washingBar" class="percentage-fill" style="width: 0%"></div>
-                    </div>
-                    <div id="washingPercent" class="percentage-text">0%</div>
-                </div>
-                
-                <div class="best-time">
-                    <span class="best-time-label">Nejlepší čas:</span>
-                    <span id="washingBestTime" class="best-time-value">--:--</span>
-                </div>
             </div>
-        </div>
-
-        <div class="timeline">
-            <div class="timeline-header">
-                <span id="todayLabel">Dnes</span>
-                <span id="todayDate"></span>
-            </div>
-            <div class="timeline-bars" id="timelineBars">
-                <div class="current-time-marker" id="timeMarker"></div>
-            </div>
-            <div class="timeline-labels">
-                <span>0:00</span>
-                <span>6:00</span>
-                <span>12:00</span>
-                <span>18:00</span>
-                <span>24:00</span>
-            </div>
-
-            <div class="schedule-list" id="scheduleList"></div>
         </div>
 
         <div class="footer">
@@ -581,6 +616,26 @@
             return daySchedule[0].end;
         }
 
+        function updateCountdown() {
+            const now = new Date();
+            const currentMinutes = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+            const nextChangeTime = getNextChange();
+            let nextChangeMinutes = timeToMinutes(nextChangeTime);
+            
+            // If next change is tomorrow (e.g., 00:00)
+            if (nextChangeMinutes <= currentMinutes) {
+                nextChangeMinutes += 1440; // Add 24 hours
+            }
+            
+            const diffMinutes = nextChangeMinutes - currentMinutes;
+            const hours = Math.floor(diffMinutes / 60);
+            const minutes = Math.floor(diffMinutes % 60);
+            const seconds = Math.floor((diffMinutes * 60) % 60);
+            
+            document.getElementById('countdown').textContent = 
+                `za ${hours}h ${minutes}m ${seconds}s`;
+        }
+
         function calculateApplianceOptimization(durationMinutes) {
             const now = new Date();
             const currentMinutes = now.getHours() * 60 + now.getMinutes();
@@ -664,37 +719,25 @@
             // Update percentage bar
             document.getElementById(prefix + 'Bar').style.width = percent + '%';
             document.getElementById(prefix + 'Percent').textContent = percent + '%';
-            document.getElementById(prefix + 'BestTime').textContent = data.bestTime + ' (' + data.bestNtPercentage + '% NT)';
+            document.getElementById(prefix + 'BestTime').textContent = 
+                data.bestTime + ' (' + data.bestNtPercentage + '% NT)';
             
             // Update recommendation
-            const recElement = document.getElementById(prefix + 'Recommendation');
-            let icon, mainText, detailText, className;
+            let icon, text;
             
             if (percent >= 80) {
                 icon = '✅';
-                mainText = 'Výborný čas!';
-                detailText = 'Spusťte ihned - většina běží na NT';
-                className = 'excellent';
+                text = 'Spusťte nyní';
             } else if (percent >= 50) {
                 icon = '⚠️';
-                mainText = 'Přijatelné';
-                detailText = `Pokud můžete, počkejte do ${data.bestTime}`;
-                className = 'good';
+                text = 'Možné, ale lepší ' + data.bestTime;
             } else {
                 icon = '⏰';
-                mainText = 'Lepší počkat';
-                detailText = `Nastavte časovač na ${data.bestTime}`;
-                className = 'poor';
+                text = 'Počkejte do ' + data.bestTime;
             }
             
-            recElement.className = 'recommendation ' + className;
-            recElement.innerHTML = `
-                <div class="recommendation-icon">${icon}</div>
-                <div class="recommendation-text">
-                    <div class="recommendation-main">${mainText}</div>
-                    <div class="recommendation-detail">${detailText}</div>
-                </div>
-            `;
+            document.getElementById(prefix + 'Status').textContent = icon;
+            document.getElementById(prefix + 'Text').textContent = text;
         }
 
         function updateDisplay() {
@@ -717,6 +760,9 @@
 
             // Update next change
             document.getElementById('nextChange').textContent = getNextChange();
+            
+            // Update countdown
+            updateCountdown();
 
             // Update today's date
             document.getElementById('todayDate').textContent = 
@@ -756,7 +802,7 @@
             const currentPercent = ((now.getHours() * 60 + now.getMinutes()) / 1440) * 100;
             document.getElementById('timeMarker').style.left = currentPercent + '%';
 
-            // Update schedule list
+            // Update schedule list (but don't change open/closed state)
             updateScheduleList();
         }
 
@@ -770,11 +816,20 @@
                 item.className = 'schedule-item ' + period.type;
                 item.innerHTML = `
                     <span class="schedule-time">${period.start} - ${period.end}</span>
-                    <span class="schedule-type">${period.type === 'nt' ? 'Nízký tarif' : 'Vysoký tarif'}</span>
+                    <span class="schedule-type">${period.type === 'nt' ? 'NT' : 'VT'}</span>
                 `;
                 listContainer.appendChild(item);
             });
         }
+
+        // Schedule toggle functionality
+        document.getElementById('scheduleToggle').addEventListener('click', function() {
+            const list = document.getElementById('scheduleList');
+            const icon = document.getElementById('scheduleIcon');
+            
+            list.classList.toggle('open');
+            icon.classList.toggle('open');
+        });
 
         // Initialize and update every second
         updateDisplay();
