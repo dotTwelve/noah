@@ -51,29 +51,32 @@
             background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(10px);
             border-radius: 20px;
-            padding: 30px;
+            padding: 20px;
             margin-bottom: 20px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.18);
         }
 
-        .current-tariff {
-            text-align: center;
-            margin-bottom: 25px;
+        .tariff-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
         }
 
-        .tariff-label {
-            font-size: 16px;
-            opacity: 0.8;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
+        .tariff-current {
+            text-align: left;
+        }
+
+        .tariff-next {
+            text-align: right;
         }
 
         .tariff-value {
-            font-size: 72px;
+            font-size: 48px;
             font-weight: 700;
-            margin: 20px 0;
+            line-height: 1;
+            margin-bottom: 5px;
             text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
 
@@ -86,47 +89,31 @@
         }
 
         .tariff-description {
-            font-size: 14px;
-            opacity: 0.7;
+            font-size: 13px;
+            opacity: 0.8;
         }
 
-        .next-change {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 15px;
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        .next-change-label {
-            font-size: 12px;
-            opacity: 0.7;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .next-change-time {
-            font-size: 24px;
+        .next-time {
+            font-size: 32px;
             font-weight: 600;
+            line-height: 1;
+            margin-bottom: 5px;
         }
 
         .countdown {
-            font-size: 14px;
+            font-size: 13px;
             opacity: 0.8;
-            margin-top: 5px;
         }
 
         .timeline-section {
-            margin-top: 25px;
-            padding-top: 25px;
+            padding-top: 15px;
             border-top: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .timeline-header {
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 600;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -135,10 +122,11 @@
 
         .timeline-bars {
             position: relative;
-            height: 50px;
+            height: 24px;
             background: rgba(0, 0, 0, 0.2);
-            border-radius: 10px;
-            overflow: hidden;
+            border-radius: 6px;
+            overflow: visible;
+            margin-bottom: 8px;
         }
 
         .timeline-bar {
@@ -146,6 +134,12 @@
             top: 0;
             height: 100%;
             transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .timeline-bar:hover {
+            filter: brightness(1.2);
+            z-index: 5;
         }
 
         .timeline-bar.nt {
@@ -156,47 +150,79 @@
             background: linear-gradient(90deg, #fbbf24, #f59e0b);
         }
 
+        .timeline-tooltip {
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 100;
+        }
+
+        .timeline-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: rgba(0, 0, 0, 0.9);
+        }
+
+        .timeline-bar:hover .timeline-tooltip {
+            opacity: 1;
+        }
+
         .timeline-labels {
             display: flex;
             justify-content: space-between;
-            margin-top: 8px;
-            font-size: 11px;
-            opacity: 0.7;
+            font-size: 10px;
+            opacity: 0.6;
+            margin-bottom: 10px;
         }
 
         .current-time-marker {
             position: absolute;
-            top: -5px;
+            top: -4px;
             width: 2px;
-            height: calc(100% + 10px);
+            height: calc(100% + 8px);
             background: white;
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
             transition: left 1s ease;
             z-index: 10;
+            pointer-events: none;
         }
 
         .current-time-marker::before {
             content: '';
             position: absolute;
-            top: -5px;
-            left: -4px;
-            width: 10px;
-            height: 10px;
+            top: -4px;
+            left: -3px;
+            width: 8px;
+            height: 8px;
             background: white;
             border-radius: 50%;
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
         }
 
         .schedule-toggle {
-            margin-top: 15px;
             background: rgba(255, 255, 255, 0.1);
             border: none;
             color: white;
             width: 100%;
-            padding: 12px;
-            border-radius: 10px;
+            padding: 10px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
             display: flex;
             justify-content: space-between;
@@ -210,6 +236,7 @@
 
         .schedule-toggle-icon {
             transition: transform 0.3s;
+            font-size: 11px;
         }
 
         .schedule-toggle-icon.open {
@@ -220,7 +247,7 @@
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.3s ease;
-            margin-top: 10px;
+            margin-top: 8px;
         }
 
         .schedule-list.open {
@@ -229,13 +256,13 @@
 
         .schedule-item {
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 10px 12px;
-            margin-bottom: 6px;
+            border-radius: 6px;
+            padding: 8px 10px;
+            margin-bottom: 5px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 13px;
+            font-size: 12px;
         }
 
         .schedule-item.nt {
@@ -402,6 +429,15 @@
             .appliance-grid {
                 grid-template-columns: 1fr;
             }
+            
+            .tariff-header {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .tariff-next {
+                text-align: left;
+            }
         }
 
         @media (prefers-color-scheme: dark) {
@@ -419,14 +455,13 @@
         </div>
 
         <div class="tariff-card">
-            <div class="current-tariff">
-                <div class="tariff-label">Aktuální tarif</div>
-                <div class="tariff-value" id="currentTariff">--</div>
-                <div class="tariff-description" id="tariffDescription"></div>
-                
-                <div class="next-change">
-                    <div class="next-change-label">Další změna</div>
-                    <div class="next-change-time" id="nextChange">--:--</div>
+            <div class="tariff-header">
+                <div class="tariff-current">
+                    <div class="tariff-value" id="currentTariff">--</div>
+                    <div class="tariff-description" id="tariffDescription"></div>
+                </div>
+                <div class="tariff-next">
+                    <div class="next-time" id="nextChange">--:--</div>
                     <div class="countdown" id="countdown">--:--:--</div>
                 </div>
             </div>
@@ -756,7 +791,7 @@
             tariffElement.className = 'tariff-value ' + tariff.type;
             
             document.getElementById('tariffDescription').textContent = 
-                tariff.type === 'nt' ? 'Nízký tarif - Levnější elektřina' : 'Vysoký tarif';
+                tariff.type === 'nt' ? 'Nízký tarif' : 'Vysoký tarif';
 
             // Update next change
             document.getElementById('nextChange').textContent = getNextChange();
@@ -783,7 +818,7 @@
             const existingBars = barsContainer.querySelectorAll('.timeline-bar');
             existingBars.forEach(bar => bar.remove());
 
-            // Add new bars
+            // Add new bars with tooltips
             daySchedule.forEach(period => {
                 const bar = document.createElement('div');
                 bar.className = 'timeline-bar ' + period.type;
@@ -793,6 +828,12 @@
                 
                 bar.style.left = startPercent + '%';
                 bar.style.width = (endPercent - startPercent) + '%';
+                
+                // Add tooltip
+                const tooltip = document.createElement('div');
+                tooltip.className = 'timeline-tooltip';
+                tooltip.textContent = `${period.type.toUpperCase()}: ${period.start} - ${period.end}`;
+                bar.appendChild(tooltip);
                 
                 barsContainer.insertBefore(bar, document.getElementById('timeMarker'));
             });
