@@ -58,24 +58,14 @@
         }
 
         .tariff-header {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            text-align: center;
             margin-bottom: 20px;
-        }
-
-        .tariff-current {
-            text-align: left;
-        }
-
-        .tariff-next {
-            text-align: right;
         }
 
         .tariff-value {
             font-size: 48px;
             font-weight: 700;
-            line-height: 1;
+            line-height: 1.1;
             margin-bottom: 5px;
             text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
@@ -89,19 +79,20 @@
         }
 
         .tariff-description {
-            font-size: 13px;
+            font-size: 14px;
             opacity: 0.8;
+            margin-bottom: 20px;
         }
 
         .next-time {
             font-size: 32px;
             font-weight: 600;
-            line-height: 1;
+            line-height: 1.1;
             margin-bottom: 5px;
         }
 
         .countdown {
-            font-size: 13px;
+            font-size: 14px;
             opacity: 0.8;
         }
 
@@ -135,11 +126,6 @@
             height: 100%;
             transition: all 0.3s ease;
             cursor: pointer;
-        }
-
-        .timeline-bar:hover {
-            filter: brightness(1.2);
-            z-index: 5;
         }
 
         .timeline-bar.nt {
@@ -178,8 +164,23 @@
             border-top-color: rgba(0, 0, 0, 0.9);
         }
 
-        .timeline-bar:hover .timeline-tooltip {
-            opacity: 1;
+        /* Desktop hover */
+        @media (hover: hover) {
+            .timeline-bar:hover {
+                filter: brightness(1.2);
+                z-index: 5;
+            }
+            
+            .timeline-bar:hover .timeline-tooltip {
+                opacity: 1;
+            }
+        }
+
+        /* Mobile - always show tooltip on current sector */
+        @media (hover: none) {
+            .timeline-tooltip.mobile-visible {
+                opacity: 1;
+            }
         }
 
         .timeline-labels {
@@ -429,15 +430,6 @@
             .appliance-grid {
                 grid-template-columns: 1fr;
             }
-            
-            .tariff-header {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
-            
-            .tariff-next {
-                text-align: left;
-            }
         }
 
         @media (prefers-color-scheme: dark) {
@@ -456,14 +448,11 @@
 
         <div class="tariff-card">
             <div class="tariff-header">
-                <div class="tariff-current">
-                    <div class="tariff-value" id="currentTariff">--</div>
-                    <div class="tariff-description" id="tariffDescription"></div>
-                </div>
-                <div class="tariff-next">
-                    <div class="next-time" id="nextChange">--:--</div>
-                    <div class="countdown" id="countdown">--:--:--</div>
-                </div>
+                <div class="tariff-value" id="currentTariff">--</div>
+                <div class="tariff-description" id="tariffDescription"></div>
+                
+                <div class="next-time" id="nextChange">--:--</div>
+                <div class="countdown" id="countdown">--:--:--</div>
             </div>
 
             <div class="timeline-section">
@@ -628,12 +617,13 @@
                 if (currentMinutes >= startMinutes && currentMinutes < endMinutes) {
                     return {
                         type: period.type,
-                        end: period.end
+                        end: period.end,
+                        start: period.start
                     };
                 }
             }
             
-            return {type: 'nt', end: '00:00'};
+            return {type: 'nt', end: '00:00', start: '00:00'};
         }
 
         function getNextChange() {
@@ -813,6 +803,9 @@
         function updateTimeline() {
             const daySchedule = getDaySchedule();
             const barsContainer = document.getElementById('timelineBars');
+            const now = new Date();
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+            const currentTariff = getCurrentTariff();
             
             // Clear existing bars (except marker)
             const existingBars = barsContainer.querySelectorAll('.timeline-bar');
@@ -832,6 +825,16 @@
                 // Add tooltip
                 const tooltip = document.createElement('div');
                 tooltip.className = 'timeline-tooltip';
+                
+                // Check if this is the current period
+                const startMinutes = timeToMinutes(period.start);
+                const endMinutes = timeToMinutes(period.end);
+                const isCurrentPeriod = currentMinutes >= startMinutes && currentMinutes < endMinutes;
+                
+                if (isCurrentPeriod) {
+                    tooltip.classList.add('mobile-visible');
+                }
+                
                 tooltip.textContent = `${period.type.toUpperCase()}: ${period.start} - ${period.end}`;
                 bar.appendChild(tooltip);
                 
@@ -839,7 +842,6 @@
             });
 
             // Update current time marker
-            const now = new Date();
             const currentPercent = ((now.getHours() * 60 + now.getMinutes()) / 1440) * 100;
             document.getElementById('timeMarker').style.left = currentPercent + '%';
 
