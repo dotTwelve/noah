@@ -13,6 +13,12 @@
         baseUrl: 'https://dottwelve.github.io/noah/',
         scripts: [
             {
+                name: 'favicon-theme',
+                file: 'scripts/favicon-theme.js',
+                enabled: true,
+                description: 'Favicon s podporou light/dark theme'
+            },
+            {
                 name: 'quantity-selector',
                 file: 'scripts/quantity-selector.js',
                 enabled: true,
