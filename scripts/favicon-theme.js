@@ -1,0 +1,38 @@
+/**
+ * NOAH Favicon Theme Switcher
+ * Automaticky mění favicon podle systémového light/dark theme
+ * 
+ * @author NOAH Natural Products s.r.o.
+ * @version 1.0.0
+ */
+(function() {
+  'use strict';
+
+  var svgBase = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 112 112"><path d="M40.6639 90.5073C40.6975 90.5458 40.7348 90.5882 40.7721 90.6228C43.2273 92.8938 46.6078 89.3603 44.3205 86.8469L30.0334 69.4838C30.0185 69.4684 30.0073 69.453 29.9924 69.4376C27.4999 66.851 26.0969 63.3522 26.0969 59.6995V42.8945C26.0969 39.9731 27.2238 37.1671 29.2275 35.1002L49.8578 11.8057C50.507 11.0743 51.6861 11.5478 51.6861 12.537V49.4263L51.6376 49.4802L51.6861 49.5303V108.84C51.8316 113.032 57.6897 113.074 57.8502 108.84V95.4726C57.8502 94.6297 58.1748 93.8214 58.7531 93.2248L85.6035 65.5308C86.805 64.2876 86.805 62.2784 85.6035 61.0351C84.3983 59.7919 82.4468 59.7919 81.2453 61.0351L64.906 77.8901C62.3016 80.5768 57.8502 78.6753 57.8502 74.8763C57.8502 73.7447 58.2867 72.6631 59.0591 71.8625L89.2079 40.7621C91.9802 37.6983 87.8646 33.3873 84.8498 36.2664L63.1113 58.6949C61.171 60.6964 57.8502 59.2799 57.8502 56.447V53.3832C57.8502 52.5402 58.1748 51.7319 58.7531 51.1353L78.9767 30.2696C80.1819 29.0302 80.1819 27.0171 78.9767 25.7777V25.7739C77.7715 24.5345 75.8238 24.5345 74.6186 25.7739L63.1113 37.6482C61.171 39.6497 57.8502 38.2333 57.8502 35.4004V32.783C57.8502 31.6514 58.2867 30.566 59.0591 29.7692L68.7605 19.7655C69.9619 18.5223 69.9619 16.5131 68.7605 15.2698C67.559 14.0304 65.6075 14.0304 64.4023 15.2698L63.1113 16.6054C61.171 18.6069 57.8502 17.1905 57.8502 14.3576V3.17607C57.8763 0.381649 54.5107 -1.0579 52.6189 0.908971H52.6152C52.6003 0.924367 52.5891 0.939763 52.5741 0.95516L24.1305 32.9216C22.1268 34.9885 21 37.7945 21 40.7159V61.878C21 65.5385 22.4104 69.0488 24.9178 71.6393L40.6639 90.5073Z" fill="FILLCOLOR"/></svg>';
+
+  function setFavicon(isDark) {
+    var color = isDark ? '%23ffffff' : '%23000000';
+    var svg = svgBase.replace('FILLCOLOR', color);
+    
+    var link = document.querySelector("link[rel*='icon']");
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'icon';
+      document.head.appendChild(link);
+    }
+    link.type = 'image/svg+xml';
+    link.href = 'data:image/svg+xml,' + svg;
+  }
+
+  // Detekce a nastavení
+  var darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+  setFavicon(darkModeQuery.matches);
+
+  // Reakce na změnu theme
+  darkModeQuery.addEventListener('change', function(e) {
+    setFavicon(e.matches);
+  });
+
+  // Log pro debugging
+  console.log('[NOAH] Favicon theme switcher loaded');
+})();
